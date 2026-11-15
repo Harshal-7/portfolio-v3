@@ -70,3 +70,12 @@ export const PROJECT_IMAGES = {
     height: 480,
   },
 } as const;
+
+/** "A /// B /// C ///" → ["A", "B", "C"]: the ticker's separate phrases. */
+export function splitTicker(text: string): string[] {
+  const parts = text
+    .split(/\/{2,}|\s[•|·]\s/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  return parts.length ? parts : [text.trim()].filter(Boolean);
+}

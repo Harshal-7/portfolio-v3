@@ -618,3 +618,26 @@ html[data-bulb][data-mode="light"] .px-site .px-bf {
 html[data-bulb][data-mode="dark"] .px-site .px-bf {
   animation: hsBfB 0.75s steps(6) both;
 }
+
+/* The bulb sways (in pixel steps) when the pointer comes near, and nudges once after load. */
+.px-site .px-bulb {
+  transform-origin: 50% 0;
+}
+.px-site .px-bulb[data-near] {
+  animation: pxSway 1.4s steps(8) infinite;
+}
+.px-site .px-bulb[data-nudge] {
+  animation: pxSway 1.4s steps(8) 1;
+}
+@keyframes pxSway {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(7deg);
+  }
+  75% {
+    transform: rotate(-6deg);
+  }
+}

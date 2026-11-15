@@ -1,0 +1,49 @@
+/* Candidate Pixel headers (see header-options.tsx). */
+
+.hd-mark {
+  flex: none;
+  display: grid;
+  gap: 1px;
+  width: max-content;
+}
+.hd-mark-h {
+  background: var(--fg);
+}
+.hd-mark-s {
+  background: var(--accent);
+}
+
+.hd-word {
+  font-family: var(--px-head);
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: 0.01em;
+  color: var(--fg);
+}
+.hd-word-lg {
+  font-size: 20px;
+}
+.hd-tld {
+  color: var(--muted);
+}
+.hd-huh {
+  color: var(--accent);
+}
+.hd-dot {
+  color: var(--muted);
+  margin: 0 1px;
+}
+.hd-cursor {
+  display: inline-block;
+  width: 0.5em;
+  height: 0.9em;
+  margin-left: 3px;
+  vertical-align: -0.08em;
+  background: var(--accent);
+  animation: hdBlink 1.1s steps(1) infinite;
+}
+@keyframes hdBlink {
+  50% {
+    opacity: 0;
+  }
+}

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { useCuriousBulb } from "../shared/curious-bulb";
 import { bulbLabel, setMode, useMode } from "../shared/mode";
 
 /** An Edison bulb on a cord, with a pull string beside it. Lit = light theme. */
@@ -9,18 +10,24 @@ export function PullCordBulb() {
   const mode = useMode();
   const [pulling, setPulling] = useState(false);
   const timer = useRef<number | undefined>(undefined);
+  const bulbRef = useRef<HTMLButtonElement>(null);
+  const curious = useCuriousBulb(bulbRef);
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
   const label = bulbLabel(mode);
   return (
     <button
+      ref={bulbRef}
+      data-near={curious.near || undefined}
+      data-nudge={curious.nudge || undefined}
       type="button"
       className="nb-bulb"
       aria-label={label}
       title={label}
       data-pulling={pulling || undefined}
       onClick={() => {
+        curious.stopNudge();
         const current = document.documentElement.getAttribute("data-mode");
         setMode(current === "dark" ? "light" : "dark");
         setPulling(true);

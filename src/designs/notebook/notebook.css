@@ -537,3 +537,30 @@ html:not([data-mode="dark"]) .nb-filament {
   background: var(--accent);
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
 }
+
+/* The bulb sways when the pointer comes near, and nudges once after load. */
+.nb-site .nb-bulb-hang,
+.nb-site .nb-pull {
+  transform-origin: 50% 0;
+}
+.nb-bulb[data-near] .nb-bulb-hang {
+  animation: nbSway 1.8s ease-in-out infinite;
+}
+.nb-bulb[data-near] .nb-pull {
+  animation: nbSway 1.8s 0.15s ease-in-out infinite;
+}
+.nb-bulb[data-nudge] .nb-bulb-hang {
+  animation: nbSway 1.8s ease-in-out 1;
+}
+@keyframes nbSway {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  30% {
+    transform: rotate(6deg);
+  }
+  70% {
+    transform: rotate(-5deg);
+  }
+}

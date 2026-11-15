@@ -1,5 +1,8 @@
 "use client";
 
+import { useRef } from "react";
+
+import { useCuriousBulb } from "../shared/curious-bulb";
 import { bulbLabel, setMode, useMode } from "../shared/mode";
 
 // 9 × 12 pixel bulb. X glass, H highlight, B/b screw base, . empty.
@@ -27,13 +30,19 @@ const PARTICLES = Array.from({ length: 10 }, (_, i) => i);
 export function PixelBulb() {
   const mode = useMode();
   const label = bulbLabel(mode);
+  const bulbRef = useRef<HTMLButtonElement>(null);
+  const curious = useCuriousBulb(bulbRef);
   return (
     <button
+      ref={bulbRef}
+      data-near={curious.near || undefined}
+      data-nudge={curious.nudge || undefined}
       type="button"
       className="px-bulb"
       aria-label={label}
       title={label}
       onClick={() => {
+        curious.stopNudge();
         const current = document.documentElement.getAttribute("data-mode");
         setMode(current === "dark" ? "light" : "dark");
       }}

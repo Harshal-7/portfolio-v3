@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { defaultSite } from "./defaults";
 import { blobConfigured, blobStoreId, isResumePathname, looksLikePdf, ownBlobAccess, resumeFileName } from "./resume";
-import { findLink, linkNames, monthYear, splitLead, visibleSections } from "./view";
+import { findLink, linkNames, monthYear, splitLead, splitTicker, visibleSections } from "./view";
 
 describe("visibleSections", () => {
   it("lists only the switched-on sections", () => {
@@ -40,6 +40,14 @@ describe("splitLead", () => {
   });
   it("keeps a single sentence whole", () => {
     expect(splitLead("Say hello")).toEqual(["Say hello", ""]);
+  });
+});
+
+describe("splitTicker", () => {
+  it("splits the ticker into phrases", () => {
+    expect(splitTicker(defaultSite.pixel.ticker)).toEqual(["NOW BUILDING EVENOR + LIFE VAULT", "FULL-STACK AND AI", "BASED IN INDIA"]);
+    expect(splitTicker("Just one thing")).toEqual(["Just one thing"]);
+    expect(splitTicker("   ")).toEqual([]);
   });
 });
 
