@@ -45,5 +45,3 @@ next-env.d.ts
 /.data/
 /public/dev-uploads/
 
-# next dev --experimental-https
-/certificates/

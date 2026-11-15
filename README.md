@@ -20,10 +20,10 @@ The home page is prerendered. Site content is one JSON document in Redis, read t
 ```bash
 pnpm install
 cp .env.example .env.local   # then fill it in, or set SITE_STORE=file
-pnpm dev                      # https://localhost:3000
+pnpm dev                      # http://localhost:3000
 ```
 
-`pnpm dev` runs with `--experimental-https`, because the admin cookie needs HTTPS.
+The admin cookie is marked Secure. Browsers treat `http://localhost` as secure, so it works locally without a certificate.
 
 With `SITE_STORE=file` the content lives in `.data/site.json` and admin sessions and rate limits stay in memory, so you can try the admin page without any accounts. You still need `ADMIN_PATH`, `ADMIN_SESSION_SECRET` and `ADMIN_PASSWORD_HASH`.
 

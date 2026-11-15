@@ -1,0 +1,207 @@
+@import "tailwindcss";
+
+/*
+ * Indigo palette (Colors 1 on the design canvas), shared by both designs.
+ * html[data-mode] is set before first paint by the theme script in the layout.
+ */
+:root {
+  --bg: #fbfbfa;
+  --surface: #ffffff;
+  --surface2: #f3f3f1;
+  --fg: #18181b;
+  --muted: #5b5b63;
+  --line: #e4e4e0;
+  --accent: #4f46e5;
+  --accent-fg: #ffffff;
+  --accent-soft: #eef0ff;
+  --link: #4338ca;
+  --pill-bg: #eef0ff;
+  --pill-fg: #4338ca;
+  --btn-bg: #18181b;
+  --btn-fg: #ffffff;
+  --pat: #e9e9e6;
+  --pat2: #d7d7d2;
+  --spark1: #6366f1;
+  --spark2: #22a06b;
+  --spark3: #f59e0b;
+  --spark4: #ec4899;
+  --danger: #b42318;
+  color-scheme: light;
+}
+
+html[data-mode="dark"] {
+  --bg: #141416;
+  --surface: #1b1b1f;
+  --surface2: #222226;
+  --fg: #ececee;
+  --muted: #a1a1aa;
+  --line: #2b2b31;
+  --accent: #a5b4fc;
+  --accent-fg: #141416;
+  --accent-soft: #23243b;
+  --link: #b9c3ff;
+  --pill-bg: #23243b;
+  --pill-fg: #c7d0ff;
+  --btn-bg: #ececee;
+  --btn-fg: #141416;
+  --pat: #202024;
+  --pat2: #2c2c32;
+  --spark1: #a5b4fc;
+  --spark2: #4ade80;
+  --spark3: #fbbf24;
+  --spark4: #f472b6;
+  --danger: #ff8a7a;
+  color-scheme: dark;
+}
+
+/* Tailwind names for the same colours (used by the admin page). */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface2);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-link: var(--link);
+  --color-btn: var(--btn-bg);
+  --color-btn-fg: var(--btn-fg);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Small motion shared by both designs. Everything stops for reduced motion. */
+.hs-rise {
+  animation: hsRise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.hs-rise-2 {
+  animation: hsRise 0.6s 0.08s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.hs-rise-3 {
+  animation: hsRise 0.6s 0.16s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes hsRise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes hsTwinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.7);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes hsMarquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+/* Pairs with identical frames: swapping the name restarts the animation on each toggle. */
+@keyframes hsPopA {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.25);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes hsPopB {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.25);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes hsBnA {
+  0% {
+    opacity: 1;
+    transform: translateX(8px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+}
+@keyframes hsBnB {
+  0% {
+    opacity: 1;
+    transform: translateX(8px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+}
+@keyframes hsBfA {
+  0% {
+    opacity: 1;
+    transform: translateX(8px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(48px);
+  }
+}
+@keyframes hsBfB {
+  0% {
+    opacity: 1;
+    transform: translateX(8px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(48px);
+  }
+}
+
+.hs-site a:focus-visible,
+.hs-site button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
