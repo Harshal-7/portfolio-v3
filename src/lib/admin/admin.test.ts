@@ -1,59 +1,20 @@
-import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
 import { describe, expect, it } from "vitest";
 
 import { hashPassword as hashFromScript } from "../../../scripts/admin-hash.mjs";
-import { config } from "../../proxy";
 import { hashPassword, verifyPassword } from "./password";
-import { routeAdmin } from "./route";
+import { isAdminShortcut } from "../site/shortcut";
 import { newSessionId, signSession, verifySessionToken } from "./token";
 
-const SECRET_PATH = "Xq7_secret-admin-path-000123";
+describe("admin shortcut", () => {
+  const key = (over: Partial<KeyboardEvent>) =>
+    ({ ctrlKey: false, metaKey: false, altKey: false, shiftKey: false, code: "KeyH", ...over }) as KeyboardEvent;
 
-describe("routeAdmin", () => {
-  it("rewrites the secret path and everything under it", () => {
-    expect(routeAdmin(`/${SECRET_PATH}`, SECRET_PATH)).toEqual({ type: "admin", pathname: "/admin" });
-    expect(routeAdmin(`/${SECRET_PATH}/upload`, SECRET_PATH)).toEqual({ type: "admin", pathname: "/admin/upload" });
-    expect(routeAdmin(`/${SECRET_PATH}/preview/pixel`, SECRET_PATH)).toEqual({
-      type: "admin",
-      pathname: "/admin/preview/pixel",
-    });
-  });
-
-  it("returns 404 for /admin in every spelling", () => {
-    for (const p of ["/admin", "/Admin", "/ADMIN/upload", "/%61dmin", "/admin.rsc", "//admin", "/admin;x"]) {
-      expect(routeAdmin(p, SECRET_PATH), p).toEqual({ type: "not-found" });
-    }
-  });
-
-  it("does not match lookalikes of the secret", () => {
-    expect(routeAdmin(`/${SECRET_PATH}x`, SECRET_PATH)).toEqual({ type: "pass" });
-    expect(routeAdmin(`/${SECRET_PATH.toLowerCase()}`, SECRET_PATH)).toEqual({ type: "pass" });
-    expect(routeAdmin("/administrator", SECRET_PATH)).toEqual({ type: "pass" });
-  });
-
-  it("turns admin off when ADMIN_PATH is missing or too short", () => {
-    expect(routeAdmin("/short", "short")).toEqual({ type: "pass" });
-    expect(routeAdmin("/anything", undefined)).toEqual({ type: "pass" });
-    expect(routeAdmin("/admin", undefined)).toEqual({ type: "not-found" });
-  });
-});
-
-describe("proxy matcher", () => {
-  const matches = (url: string) => unstable_doesMiddlewareMatch({ config, url });
-
-  it("runs on the admin paths", () => {
-    expect(matches(`/${SECRET_PATH}`)).toBe(true);
-    expect(matches("/admin")).toBe(true);
-    expect(matches("/resume")).toBe(true);
-  });
-
-  it("never runs on the home page or static files", () => {
-    expect(matches("/")).toBe(false);
-    expect(matches("/_next/static/chunks/app.js")).toBe(false);
-    expect(matches("/projects/evenor-trip.jpg")).toBe(false);
-    expect(matches("/grain.png")).toBe(false);
-    expect(matches("/robots.txt")).toBe(false);
-    expect(matches("/_vercel/insights/script.js")).toBe(false);
+  it("opens on Ctrl + H only", () => {
+    expect(isAdminShortcut(key({ ctrlKey: true }))).toBe(true);
+    expect(isAdminShortcut(key({}))).toBe(false);
+    expect(isAdminShortcut(key({ metaKey: true }))).toBe(false);
+    expect(isAdminShortcut(key({ ctrlKey: true, shiftKey: true }))).toBe(false);
+    expect(isAdminShortcut(key({ ctrlKey: true, code: "KeyJ" }))).toBe(false);
   });
 });
 

@@ -5,7 +5,6 @@ import { connection } from "next/server";
 
 import { localStoresEnabled, redisConfig } from "@/lib/redis";
 
-import { validAdminPath } from "./route";
 import { getAdminState } from "./state";
 import { newSessionId, SESSION_TTL_SECONDS, signSession, verifySessionToken } from "./token";
 
@@ -18,6 +17,13 @@ export class NotSignedInError extends Error {
   }
 }
 
+/** Signed in, but the save password hasn't been entered in the last 15 minutes. */
+export class SavingLockedError extends Error {
+  constructor() {
+    super("Enter the save password to make changes.");
+  }
+}
+
 function sessionSecret(): string | null {
   const secret = process.env.ADMIN_SESSION_SECRET;
   return secret && secret.length >= 32 ? secret : null;
@@ -26,9 +32,9 @@ function sessionSecret(): string | null {
 /** Plain-language list of what's missing, shown on the sign-in page. */
 export function adminSetupProblems(): string[] {
   const problems: string[] = [];
-  if (!validAdminPath(process.env.ADMIN_PATH)) problems.push("ADMIN_PATH is missing or shorter than 24 characters.");
   if (!sessionSecret()) problems.push("ADMIN_SESSION_SECRET is missing or shorter than 32 characters.");
   if (!process.env.ADMIN_PASSWORD_HASH?.startsWith("scrypt:")) problems.push("ADMIN_PASSWORD_HASH is missing. Run pnpm admin:hash.");
+  if (!process.env.ADMIN_SAVE_PASSWORD_HASH?.startsWith("scrypt:")) problems.push("ADMIN_SAVE_PASSWORD_HASH is missing. Run pnpm admin:hash.");
   if (!redisConfig() && !localStoresEnabled()) problems.push("Upstash Redis isn't connected (Vercel → Storage).");
   return problems;
 }
@@ -40,23 +46,52 @@ async function currentSessionId(): Promise<string | null> {
   return verifySessionToken(token, secret);
 }
 
-export async function isAdmin(): Promise<boolean> {
+/** The signed-in session's id, or null. */
+async function activeSessionId(): Promise<string | null> {
   // Session checks compare against the clock, so they always run per request.
   await connection();
   const id = await currentSessionId();
   const state = getAdminState();
-  if (!id || !state) return false;
+  if (!id || !state) return null;
   try {
-    return await state.hasSession(id);
+    return (await state.hasSession(id)) ? id : null;
   } catch (error) {
     console.error("[admin] session lookup failed", error);
-    return false;
+    return null;
   }
+}
+
+export async function isAdmin(): Promise<boolean> {
+  return (await activeSessionId()) !== null;
 }
 
 /** First line of every admin Server Action and route. */
 export async function requireAdmin(): Promise<void> {
   if (!(await isAdmin())) throw new NotSignedInError();
+}
+
+export async function isSavingUnlocked(): Promise<boolean> {
+  const id = await activeSessionId();
+  if (!id) return false;
+  try {
+    return await getAdminState()!.isSavingUnlocked(id);
+  } catch (error) {
+    console.error("[admin] save unlock lookup failed", error);
+    return false;
+  }
+}
+
+/** For anything that changes the site: signed in and the save password entered recently. */
+export async function requireSavingUnlocked(): Promise<void> {
+  if (!(await isAdmin())) throw new NotSignedInError();
+  if (!(await isSavingUnlocked())) throw new SavingLockedError();
+}
+
+/** Call only after checking the save password. */
+export async function unlockSavingForSession(): Promise<void> {
+  const id = await activeSessionId();
+  if (!id) throw new NotSignedInError();
+  await getAdminState()!.unlockSaving(id);
 }
 
 /** Server Actions and Route Handlers only (it sets a cookie). */

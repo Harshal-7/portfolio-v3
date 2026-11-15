@@ -1,6 +1,6 @@
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 
-import { isAdmin } from "@/lib/admin/session";
+import { isAdmin, isSavingUnlocked } from "@/lib/admin/session";
 import { RESUME_MAX_BYTES } from "@/lib/site/resume";
 
 /**
@@ -20,6 +20,9 @@ export async function POST(request: Request): Promise<Response> {
   }
   if (!(await isAdmin())) {
     return Response.json({ error: "You were signed out. Reload and sign in again." }, { status: 401 });
+  }
+  if (!(await isSavingUnlocked())) {
+    return Response.json({ error: "Enter the save password to make changes." }, { status: 403 });
   }
 
   try {

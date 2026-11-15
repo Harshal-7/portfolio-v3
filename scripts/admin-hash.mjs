@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// Asks for the admin password (it isn't shown while you type) and prints
-// ADMIN_PASSWORD_HASH for .env.local or Vercel. The password itself is never saved.
+// Asks for the two admin passwords (they aren't shown while you type) and prints
+// ADMIN_PASSWORD_HASH (sign in) and ADMIN_SAVE_PASSWORD_HASH (save changes) for
+// .env.local or Vercel. The passwords themselves are never saved.
 //
 //   pnpm admin:hash
 //
@@ -62,20 +63,31 @@ function askHidden(prompt) {
   });
 }
 
-async function main() {
-  const first = await askHidden("Admin password: ");
+async function askTwice(name) {
+  const first = await askHidden(`${name}: `);
   if (first.length < MIN_LENGTH) {
     console.error(`Use at least ${MIN_LENGTH} characters. A short phrase of a few words works well.`);
     process.exit(1);
   }
-  const second = await askHidden("Type it again: ");
-  if (first !== second) {
-    console.error("The two passwords don't match. Nothing was printed.");
+  const again = await askHidden("Type it again: ");
+  if (first !== again) {
+    console.error("The two entries don't match. Nothing was printed.");
     process.exit(1);
   }
-  const hash = await hashPassword(first);
-  console.log("\nAdd this line to .env.local, and the value to Vercel → Settings → Environment Variables:\n");
-  console.log(`ADMIN_PASSWORD_HASH=${hash}\n`);
+  return first;
+}
+
+async function main() {
+  const signIn = await askTwice("Sign-in password (opens /admin)");
+  const save = await askTwice("Save password (asked before changes are saved)");
+  if (signIn === save) {
+    console.error("Use a different save password, or the second step adds nothing. Nothing was printed.");
+    process.exit(1);
+  }
+  const [signInHash, saveHash] = await Promise.all([hashPassword(signIn), hashPassword(save)]);
+  console.log("\nAdd these lines to .env.local, and the values to Vercel → Settings → Environment Variables:\n");
+  console.log(`ADMIN_PASSWORD_HASH=${signInHash}`);
+  console.log(`ADMIN_SAVE_PASSWORD_HASH=${saveHash}\n`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
