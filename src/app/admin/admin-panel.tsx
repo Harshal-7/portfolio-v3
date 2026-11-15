@@ -1,6 +1,6 @@
 "use client";
 
-import { upload } from "@vercel/blob/client";
+import { uploadPresigned } from "@vercel/blob/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 
@@ -788,8 +788,10 @@ function ResumeCard(props: {
         return;
       }
       const name = file.name.replace(/\.pdf$/i, "").replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
-      const blob = await upload(`resume/${name || "resume"}.pdf`, file, {
-        access: "public",
+      // A random part keeps every upload at a new path, so an old file is never overwritten.
+      const suffix = Array.from(crypto.getRandomValues(new Uint8Array(4)), (b) => b.toString(16).padStart(2, "0")).join("");
+      const blob = await uploadPresigned(`resume/${name || "resume"}-${suffix}.pdf`, file, {
+        access: "private",
         handleUploadUrl: "/admin/upload",
         contentType: "application/pdf",
       });
@@ -806,7 +808,7 @@ function ResumeCard(props: {
     <Card title="Résumé" hint="The Résumé link on the site (/resume) always opens the newest PDF.">
       {props.resume ? (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-          <a href={props.resume.url} target="_blank" rel="noreferrer" className="font-medium text-link underline underline-offset-2">
+          <a href="/resume" target="_blank" rel="noreferrer" className="font-medium text-link underline underline-offset-2">
             {props.resume.pathname.split("/").pop()}
           </a>
           <span className="text-muted">

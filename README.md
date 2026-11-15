@@ -11,7 +11,7 @@ The admin page at `/admin` (or press Ctrl + H on the site) switches the design, 
 
 ## Stack
 
-Next.js 16 (App Router, Cache Components), React 19, TypeScript, Tailwind v4, Upstash Redis for the content and admin sessions, and Vercel Blob for the résumé PDF. Vercel Web Analytics (cookieless) counts visits to the public pages only; turn it on in the Vercel project's Analytics tab.
+Next.js 16 (App Router, Cache Components), React 19, TypeScript, Tailwind v4, Upstash Redis for the content and admin sessions, and a private Vercel Blob store for the résumé PDF, which `/resume` reads and serves under the site's own address. Vercel Web Analytics (cookieless) counts visits to the public pages only; turn it on in the Vercel project's Analytics tab.
 
 The home page is prerendered. Site content is one JSON document in Redis, read through a `'use cache'` function tagged `site`; an admin save calls `updateTag('site')`, so the next visit gets the new content.
 
