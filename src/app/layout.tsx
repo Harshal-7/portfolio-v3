@@ -15,6 +15,8 @@ export async function generateMetadata(): Promise<Metadata> {
     title: { default: role ? `${name} · ${role}` : name, template: `%s · ${name}` },
     description: headline,
     openGraph: { title: name, description: headline, type: "website" },
+    // The image itself comes from (site)/opengraph-image.tsx; X falls back to og:image.
+    twitter: { card: "summary_large_image", title: name, description: headline },
   };
 }
 
