@@ -1,6 +1,6 @@
 "use server";
 
-import { del, head } from "@vercel/blob";
+import { del, get, head } from "@vercel/blob";
 import { ipAddress } from "@vercel/functions";
 import { updateTag } from "next/cache";
 import { headers } from "next/headers";
@@ -21,7 +21,7 @@ import { getAdminState } from "@/lib/admin/state";
 import { defaultSite } from "@/lib/site/defaults";
 import { SITE_TAG } from "@/lib/site/get-site";
 import { orphanedResumeUrls } from "@/lib/site/history";
-import { isOwnBlobUrl, looksLikePdf, RESUME_MAX_BYTES } from "@/lib/site/resume";
+import { isResumePathname, looksLikePdf, ownBlobAccess, RESUME_MAX_BYTES } from "@/lib/site/resume";
 import { contentSchema, issueText, type Resume, type SiteDoc } from "@/lib/site/schema";
 import { getStore, StoreNotConfiguredError, type WriteResult } from "@/lib/site/store";
 
@@ -150,13 +150,37 @@ export async function removeResume(expectedRev: number): Promise<SaveResult> {
   return guarded(() => writeNext(expectedRev, (current) => ({ ...current, resume: null })));
 }
 
+/** The first few bytes of a file on the site's Blob store. */
+async function firstBytes(url: string, access: "private" | "public"): Promise<Uint8Array> {
+  const file = await get(url, { access, useCache: false });
+  if (!file || file.statusCode !== 200) return new Uint8Array();
+  const reader = file.stream.getReader();
+  const chunks: Uint8Array[] = [];
+  let length = 0;
+  while (length < 8) {
+    const { value, done } = await reader.read();
+    if (done || !value) break;
+    chunks.push(value);
+    length += value.length;
+  }
+  await reader.cancel().catch(() => undefined);
+  const out = new Uint8Array(length);
+  let offset = 0;
+  for (const c of chunks) {
+    out.set(c, offset);
+    offset += c.length;
+  }
+  return out;
+}
+
 /**
  * Called by the admin page after the browser uploaded a PDF straight to Vercel
  * Blob. Checks the file really is a PDF on this site's store before using it.
  */
 export async function finishResumeUpload(expectedRev: number, url: string): Promise<SaveResult> {
   return guarded(async () => {
-    if (typeof url !== "string" || !isOwnBlobUrl(url)) return { ok: false, error: "That upload didn't come from this site's storage." };
+    const access = typeof url === "string" ? ownBlobAccess(url) : null;
+    if (!access) return { ok: false, error: "That upload didn't come from this site's storage." };
 
     const reject = async (error: string): Promise<SaveResult> => {
       await del(url).catch(() => undefined);
@@ -164,12 +188,10 @@ export async function finishResumeUpload(expectedRev: number, url: string): Prom
     };
 
     const info = await head(url);
+    if (!isResumePathname(info.pathname)) return reject("That upload has an unexpected name.");
     if (info.contentType !== "application/pdf") return reject("Only PDF files can be used as the résumé.");
     if (info.size > RESUME_MAX_BYTES) return reject("The PDF is over 5 MB. Export a smaller one and try again.");
-
-    const response = await fetch(url, { headers: { Range: "bytes=0-7" }, cache: "no-store" });
-    const firstBytes = new Uint8Array(await response.arrayBuffer());
-    if (!looksLikePdf(firstBytes)) return reject("That file isn't a real PDF.");
+    if (!looksLikePdf(await firstBytes(url, access))) return reject("That file isn't a real PDF.");
 
     const resume: Resume = {
       url,

@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { adminSetupProblems, isAdmin } from "@/lib/admin/session";
 import { localStoresEnabled, redisConfig } from "@/lib/redis";
 import { defaultSite } from "@/lib/site/defaults";
+import { blobConfigured } from "@/lib/site/resume";
 import { getStore } from "@/lib/site/store";
 
 import { AdminPanel } from "./admin-panel";
@@ -52,7 +53,7 @@ async function Gate() {
       initial={stored.doc ?? defaultSite}
       initialCanUndo={stored.history.length > 0}
       storeReady={!!redisConfig() || localStoresEnabled()}
-      blobReady={!!process.env.BLOB_READ_WRITE_TOKEN}
+      blobReady={blobConfigured()}
     />
   );
 }

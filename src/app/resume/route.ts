@@ -1,16 +1,19 @@
+import { get } from "@vercel/blob";
 import { connection } from "next/server";
 
 import { defaultSite } from "@/lib/site/defaults";
-import { isOwnBlobUrl } from "@/lib/site/resume";
+import { ownBlobAccess, resumeFileName } from "@/lib/site/resume";
+import type { SiteDoc } from "@/lib/site/schema";
 import { getStore } from "@/lib/site/store";
 
 /**
- * /resume always points at the newest uploaded PDF. It reads the store directly
- * (not the cached copy), so a new upload is live at once.
+ * /resume always shows the newest uploaded PDF. The Blob store is private, so
+ * this route reads the file and sends it under the site's own address. It reads
+ * the store directly (not the cached copy), so a new upload is live at once.
  */
 export async function GET() {
   await connection();
-  let doc = null;
+  let doc: SiteDoc | null = null;
   try {
     doc = await getStore().read();
   } catch (error) {
@@ -18,11 +21,29 @@ export async function GET() {
   }
 
   const url = doc?.resume?.url;
-  if (url && isOwnBlobUrl(url)) {
-    return new Response(null, {
-      status: 307,
-      headers: { Location: url, "Cache-Control": "no-store" },
-    });
+  const access = url ? ownBlobAccess(url) : null;
+
+  if (url && access === "public") {
+    return new Response(null, { status: 307, headers: { Location: url, "Cache-Control": "no-store" } });
+  }
+
+  if (url && access === "private") {
+    try {
+      const file = await get(url, { access: "private" });
+      if (file?.statusCode === 200) {
+        return new Response(file.stream, {
+          headers: {
+            "Content-Type": "application/pdf",
+            "Content-Length": String(file.blob.size),
+            "Content-Disposition": `inline; filename="${resumeFileName((doc ?? defaultSite).profile.name)}"`,
+            "Cache-Control": "no-store",
+            "X-Content-Type-Options": "nosniff",
+          },
+        });
+      }
+    } catch (error) {
+      console.error("[resume] couldn't read the PDF from Blob", error);
+    }
   }
 
   const email = (doc ?? defaultSite).profile.email;
