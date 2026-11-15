@@ -29,6 +29,14 @@ const SPARKS: [string, string, number, number, string, string][] = [
   ["90%", "3%", 4, 4, "0.7s", "4.0s"], ["95%", "94%", 4, 1, "1.6s", "4.7s"], ["98%", "49%", 4, 2, "2.4s", "3.8s"],
 ];
 
+// Shooting pixels, dark mode only, in the empty margins beside the content:
+// [left, top, travel x, travel y, cycle length, first delay].
+const SHOOTING: [string, string, number, number, string, string][] = [
+  ["calc(50% + 430px)", "70px", 220, 150, "11s", "3s"],
+  ["calc(50% - 440px)", "150px", -220, 150, "14s", "7.5s"],
+  ["calc(50% + 470px)", "420px", 200, 140, "17s", "12s"],
+];
+
 /**
  * The greeting, letter by letter: each letter pops in after the one before, on
  * load and again on every theme switch. Words never break across lines.
@@ -93,7 +101,25 @@ export function PixelSite({ site }: { site: SiteDoc }) {
 
   return (
     <div id="top" className="hs-site px-site">
+      <div aria-hidden="true" className="px-grid" />
       <div aria-hidden="true" className="px-sparks">
+        {SHOOTING.map(([left, top, dx, dy, dur, delay], i) => {
+          // The trail sits behind the head, opposite the direction of travel.
+          const sx = Math.sign(dx);
+          const trail = [1, 2, 3, 4, 5]
+            .map((n) => `${-sx * n * 4}px ${-n * 3}px 0 0 rgba(236, 236, 238, ${(0.55 - n * 0.1).toFixed(2)})`)
+            .join(", ");
+          const style = {
+            left,
+            top,
+            boxShadow: trail,
+            animationDuration: dur,
+            animationDelay: delay,
+            "--dx": `${dx}px`,
+            "--dy": `${dy}px`,
+          } as CSSProperties;
+          return <span key={`s${i}`} className="px-shoot" style={style} />;
+        })}
         {SPARKS.map(([top, left, px, c, delay, dur], i) => {
           const color = `var(--spark${c})`;
           const style: CSSProperties = {

@@ -48,16 +48,15 @@ export function PixelBoard({ text, seconds = 4 }: { text: string; seconds?: numb
   const lines = useMemo(() => splitTicker(text), [text]);
   const [index, setIndex] = useState(0);
   const [round, setRound] = useState(0);
-  const [cols, setCols] = useState(64);
+  // The board's size on screen, so the grid can cover it exactly.
+  const [size, setSize] = useState({ w: 64 * CELL_PX, h: ROWS * CELL_PX });
   const box = useRef<HTMLDivElement>(null);
 
-  // Fill the whole board with square cells: the height sets the cell size.
   useEffect(() => {
     const el = box.current;
     if (!el) return;
     const measure = () => {
-      const cell = el.clientHeight > 0 ? el.clientHeight / ROWS : CELL_PX;
-      setCols(Math.max(24, Math.floor(el.clientWidth / cell)));
+      if (el.clientWidth > 0 && el.clientHeight > 0) setSize({ w: el.clientWidth, h: el.clientHeight });
     };
     measure();
     const observer = new ResizeObserver(measure);
@@ -83,27 +82,32 @@ export function PixelBoard({ text, seconds = 4 }: { text: string; seconds?: numb
   const { cells, width } = layoutBoard([{ text: line, tone: index % 2 ? "accent" : "fg" }]);
   if (lines.length === 0) return null;
 
-  // Words start two cells in from the left. A line too long for the board
-  // widens the grid, which shrinks it to fit rather than cutting it off.
+  // Square cells sized by the board's height, or smaller when a long line needs
+  // more columns. The grid then covers the whole board (the last partial column
+  // and row are cropped), so there's never a blank strip at an edge. Words start
+  // two cells in from the left and sit in the middle vertically.
   const offset = 2;
-  const viewCols = Math.max(cols, width + offset * 2);
+  const cell = Math.min(size.h / ROWS, size.w / (width + offset * 2));
+  const viewCols = Math.ceil(size.w / cell);
+  const viewRows = Math.ceil(size.h / cell);
+  const shiftY = Math.floor((viewRows - GLYPH_ROWS) / 2) - PAD_Y;
 
   return (
     <div ref={box} className="pb-board" role="marquee" aria-label={lines.map((l) => (/[.!?]$/.test(l) ? l : `${l}.`)).join(" ")}>
-      <svg className="pb-svg" viewBox={`0 0 ${viewCols} ${ROWS}`} preserveAspectRatio="xMinYMid meet" shapeRendering="crispEdges" aria-hidden="true">
+      <svg className="pb-svg" viewBox={`0 0 ${viewCols} ${viewRows}`} preserveAspectRatio="xMinYMin slice" shapeRendering="crispEdges" aria-hidden="true">
         <defs>
           <pattern id="pb-off" width="1" height="1" patternUnits="userSpaceOnUse">
             <rect className="pb-offcell" x="0.08" y="0.08" width="0.84" height="0.84" />
           </pattern>
         </defs>
-        <rect width={viewCols} height={ROWS} fill="url(#pb-off)" />
+        <rect width={viewCols} height={viewRows} fill="url(#pb-off)" />
         <g key={round}>
           {cells.map((c) => (
             <rect
               key={`${c.x}-${c.y}`}
               className={`pb-on pb-${c.tone}`}
               x={c.x + offset + 0.08}
-              y={c.y + 0.08}
+              y={c.y + shiftY + 0.08}
               width="0.84"
               height="0.84"
               style={round ? { animationDelay: `${(noise(c.x, c.y, round) * 0.5).toFixed(2)}s` } : undefined}
