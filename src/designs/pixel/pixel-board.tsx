@@ -13,7 +13,6 @@ const PAD_Y = 1; // one empty row above and below the letters
 const ROWS = GLYPH_ROWS + PAD_Y * 2;
 const GAP = 1; // empty column between characters
 const CELL_PX = 6; // preferred cell size on screen
-const SWITCH_MS = 3800;
 
 /** Lays the text out as lit cells from column 0. Returns the cells and the width in columns. */
 export function layoutBoard(segments: { text: string; tone: Tone }[]): { cells: Cell[]; width: number } {
@@ -45,18 +44,21 @@ function noise(a: number, b: number, c: number): number {
  * random other line every few seconds; the new line's pixels light up in a
  * random order.
  */
-export function PixelBoard({ text }: { text: string }) {
+export function PixelBoard({ text, seconds = 4 }: { text: string; seconds?: number }) {
   const lines = useMemo(() => splitTicker(text), [text]);
   const [index, setIndex] = useState(0);
   const [round, setRound] = useState(0);
   const [cols, setCols] = useState(64);
   const box = useRef<HTMLDivElement>(null);
 
-  // Fill the board's width with cells of about CELL_PX.
+  // Fill the whole board with square cells: the height sets the cell size.
   useEffect(() => {
     const el = box.current;
     if (!el) return;
-    const measure = () => setCols(Math.max(24, Math.floor(el.clientWidth / CELL_PX)));
+    const measure = () => {
+      const cell = el.clientHeight > 0 ? el.clientHeight / ROWS : CELL_PX;
+      setCols(Math.max(24, Math.floor(el.clientWidth / cell)));
+    };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(el);
@@ -73,9 +75,9 @@ export function PixelBoard({ text }: { text: string }) {
         return next;
       });
       setRound((r) => r + 1);
-    }, SWITCH_MS);
+    }, Math.max(2, seconds) * 1000);
     return () => window.clearInterval(id);
-  }, [lines.length]);
+  }, [lines.length, seconds]);
 
   const line = lines[index % Math.max(lines.length, 1)] ?? "";
   const { cells, width } = layoutBoard([{ text: line, tone: index % 2 ? "accent" : "fg" }]);

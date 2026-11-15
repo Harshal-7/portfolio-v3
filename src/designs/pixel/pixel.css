@@ -93,7 +93,11 @@
 .pb-board {
   position: relative;
   overflow: hidden;
-  height: clamp(46px, 8cqi, 60px);
+  /* Same measure as the intro above it, so the board doesn't outweigh the text. */
+  font-size: 17px;
+  width: 100%;
+  max-width: 52ch;
+  height: clamp(40px, 6cqi, 46px);
   border-radius: 10px;
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--line);

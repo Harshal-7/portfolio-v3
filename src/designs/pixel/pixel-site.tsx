@@ -131,7 +131,7 @@ export function PixelSite({ site }: { site: SiteDoc }) {
               </span>
             </h1>
             {pixel.intro && <p className="px-lede">{pixel.intro}</p>}
-            {pixel.ticker && <PixelBoard text={pixel.ticker} />}
+            {pixel.ticker && <PixelBoard text={pixel.ticker} seconds={pixel.boardSeconds} />}
             {site.links.length > 0 && (
               <nav aria-label="Links" className="px-keys">
                 {site.links.map((l, i) => (

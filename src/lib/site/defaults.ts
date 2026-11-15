@@ -136,6 +136,7 @@ export const defaultSite: SiteDoc = {
     intro:
       "I build full-stack and AI apps, and I write about what breaks along the way. Next.js up front, FastAPI behind it, AI where it earns its place.",
     ticker: "HELLO, WORLD! /// HUH? /// SHIP IT! /// 200 OK /// 404: SLEEP /// BUG? FEATURE. /// EVALS: 26/26",
+    boardSeconds: 4,
   },
   // The private Blob file uploaded on 2026-11-15. Its URL needs the site's
   // credentials to read, so it's safe in code; /resume serves it.

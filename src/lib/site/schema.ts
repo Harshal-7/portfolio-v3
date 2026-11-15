@@ -114,6 +114,8 @@ export const contentSchema = z.object({
     greeting: required(60),
     intro: text(300),
     ticker: text(160),
+    /** How long each board line stays before the next one (older documents get the default). */
+    boardSeconds: z.number().min(2).max(20).default(4),
   }),
 });
 

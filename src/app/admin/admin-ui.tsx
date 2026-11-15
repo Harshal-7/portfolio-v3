@@ -262,6 +262,35 @@ export function Select<T extends string>(props: {
   );
 }
 
+/** A slider with its current value shown next to the label. */
+export function Range(props: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  format: (value: number) => string;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <label className="flex min-w-0 flex-col gap-2">
+      <span className="flex items-baseline justify-between gap-3">
+        <span className="text-[13px] font-medium text-fg">{props.label}</span>
+        <span className="font-mono text-xs text-muted">{props.format(props.value)}</span>
+      </span>
+      <input
+        type="range"
+        min={props.min}
+        max={props.max}
+        step={props.step}
+        value={props.value}
+        onChange={(e) => props.onChange(Number(e.target.value))}
+        className="h-2 w-full cursor-pointer accent-accent"
+      />
+    </label>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Choices
 

@@ -27,6 +27,7 @@ import {
   ListInput,
   LocalTime,
   primaryButton,
+  Range,
   Segmented,
   Select,
   Text,
@@ -177,7 +178,7 @@ export function AdminPanel(props: {
   const set = <K extends keyof SiteContent>(key: K, value: SiteContent[K]) => edit((d) => ({ ...d, [key]: value }));
   const setProfile = (key: keyof SiteContent["profile"], value: string) =>
     edit((d) => ({ ...d, profile: { ...d.profile, [key]: value } }));
-  const setPixel = (key: keyof SiteContent["pixel"], value: string) =>
+  const setPixel = (key: "greeting" | "intro" | "ticker", value: string) =>
     edit((d) => ({ ...d, pixel: { ...d.pixel, [key]: value } }));
 
   const notebookHero = (
@@ -192,6 +193,15 @@ export function AdminPanel(props: {
       <Text label="Greeting" value={draft.pixel.greeting} max={60} onChange={(v) => setPixel("greeting", v)} />
       <Area label="Intro" rows={3} value={draft.pixel.intro} max={300} onChange={(v) => setPixel("intro", v)} />
       <Text label="Board lines" hint="Use /// between lines · one shows at a time" value={draft.pixel.ticker} max={160} onChange={(v) => setPixel("ticker", v)} />
+      <Range
+        label="Time per board line"
+        value={draft.pixel.boardSeconds}
+        min={2}
+        max={12}
+        step={0.5}
+        format={(v) => `${v} s`}
+        onChange={(v) => edit((d) => ({ ...d, pixel: { ...d.pixel, boardSeconds: v } }))}
+      />
     </Card>
   );
 
