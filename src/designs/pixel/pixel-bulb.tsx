@@ -4,23 +4,9 @@ import { useRef } from "react";
 
 import { useCuriousBulb } from "../shared/curious-bulb";
 import { bulbLabel, setMode, useMode } from "../shared/mode";
+import { BULB_ROWS } from "./bulb-shape";
 
-// 9 × 12 pixel bulb. X glass, H highlight, B/b screw base, . empty.
-const ROWS = [
-  "..XXXXX..",
-  ".XXXXXXX.",
-  "XXHHXXXXX",
-  "XXHXXXXXX",
-  "XXXXXXXXX",
-  "XXXXXXXXX",
-  ".XXXXXXX.",
-  "..XXXXX..",
-  "...BBB...",
-  "...bbb...",
-  "...BBB...",
-  "....B....",
-];
-const CELLS = ROWS.join("").split("");
+const CELLS = BULB_ROWS.join("").split("");
 const PARTICLES = Array.from({ length: 10 }, (_, i) => i);
 
 /**
