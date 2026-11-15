@@ -6,7 +6,6 @@ import { ImageResponse } from "next/og";
 import { BULB_ROWS } from "@/designs/pixel/bulb-shape";
 import { getSite } from "@/lib/site/get-site";
 import type { SiteDoc } from "@/lib/site/schema";
-import { siteUrl } from "@/lib/site/url";
 
 /**
  * The link-preview card for X, LinkedIn, WhatsApp and the rest. It follows the
@@ -39,9 +38,8 @@ export default async function OpenGraphImage() {
   const site = await getSite();
   const mode = site.defaultMode === "system" ? (site.design === "pixel" ? "dark" : "light") : site.defaultMode;
   const p = PALETTES[mode];
-  const host = siteUrl().hostname === "localhost" ? "" : siteUrl().hostname;
 
-  return new ImageResponse(site.design === "pixel" ? <PixelCard site={site} p={p} host={host} /> : <NotebookCard site={site} p={p} host={host} />, {
+  return new ImageResponse(site.design === "pixel" ? <PixelCard site={site} p={p} /> : <NotebookCard site={site} p={p} />, {
     ...size,
     fonts: [
       { name: "Pixelify", data: pixelify, weight: 600, style: "normal" },
@@ -52,7 +50,7 @@ export default async function OpenGraphImage() {
   });
 }
 
-type CardProps = { site: SiteDoc; p: Palette; host: string };
+type CardProps = { site: SiteDoc; p: Palette };
 
 /** Smaller type for longer text, so admin edits never spill off the card. */
 function fit(text: string, steps: [number, number][], smallest: number) {
@@ -60,7 +58,7 @@ function fit(text: string, steps: [number, number][], smallest: number) {
   return smallest;
 }
 
-function PixelCard({ site, p, host }: CardProps) {
+function PixelCard({ site, p }: CardProps) {
   const { greeting } = site.pixel;
   const { headline, role } = site.profile;
   return (
@@ -86,22 +84,19 @@ function PixelCard({ site, p, host }: CardProps) {
           {headline}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto" }}>
-          {role ? (
-            <div style={{ display: "flex", padding: "10px 22px", background: p.surface, border: `2px solid ${p.line}`, borderRadius: 10, fontFamily: "Doto", fontSize: 38, letterSpacing: 2 }}>
+        {role && (
+          <div style={{ display: "flex", marginTop: "auto" }}>
+            <div style={{ display: "flex", padding: "10px 22px", background: p.surface, border: `2px solid ${p.line}`, borderRadius: 10, fontFamily: "Doto", fontSize: fit(role, [[26, 38], [40, 28]], 22), letterSpacing: 2, whiteSpace: "nowrap" }}>
               {role.toUpperCase()}
             </div>
-          ) : (
-            <div style={{ display: "flex" }} />
-          )}
-          <div style={{ display: "flex", fontSize: 22, color: p.muted }}>{host}</div>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function NotebookCard({ site, p, host }: CardProps) {
+function NotebookCard({ site, p }: CardProps) {
   const { name, role, headline } = site.profile;
   return (
     <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", background: p.bg, color: p.fg, fontFamily: "Geist" }}>
@@ -114,13 +109,8 @@ function NotebookCard({ site, p, host }: CardProps) {
         <div style={{ display: "flex", fontFamily: "Fraunces", fontSize: fit(headline, [[80, 70], [120, 58]], 46), lineHeight: 1.16, letterSpacing: -1.5, maxWidth: 1020 }}>
           {headline}
         </div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          {role ? (
-            <div style={{ display: "flex", padding: "10px 22px", borderRadius: 999, background: p.soft, color: p.pill, fontSize: 26 }}>{role}</div>
-          ) : (
-            <div style={{ display: "flex" }} />
-          )}
-          <div style={{ display: "flex", fontSize: 22, color: p.muted }}>{host}</div>
+        <div style={{ display: "flex" }}>
+          {role && <div style={{ display: "flex", padding: "10px 22px", borderRadius: 999, background: p.soft, color: p.pill, fontSize: 26, whiteSpace: "nowrap" }}>{role}</div>}
         </div>
       </div>
     </div>
