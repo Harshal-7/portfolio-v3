@@ -27,12 +27,31 @@ const SPARKS: [string, string, number, number, string, string][] = [
   ["90%", "3%", 4, 4, "0.7s", "4.0s"], ["95%", "94%", 4, 1, "1.6s", "4.7s"], ["98%", "49%", 4, 2, "2.4s", "3.8s"],
 ];
 
-// The pixel "HS" monogram: 5 × 7 letters with a one-cell gap.
-const H = ["X...X", "X...X", "X...X", "XXXXX", "X...X", "X...X", "X...X"];
-const S = [".XXXX", "X....", "X....", ".XXX.", "....X", "....X", "XXXX."];
-const MONO = H.flatMap((h, r) =>
-  `${h}.${S[r]}`.split("").map((ch, i) => ({ lit: ch === "X", first: i < 5, delay: `${((r + i) * 0.035).toFixed(3)}s` })),
-);
+/**
+ * The greeting, letter by letter: each letter pops in after the one before, on
+ * load and again on every theme switch. Words never break across lines.
+ */
+function PoppingText({ text }: { text: string }) {
+  const parts = text.split(/(\s+)/);
+  const starts = parts.map((_, i) => parts.slice(0, i).reduce((n, p) => n + (/^\s+$/.test(p) ? 0 : [...p].length), 0));
+  return (
+    <>
+      {parts.map((part, wi) =>
+        /^\s+$/.test(part) || part === "" ? (
+          part
+        ) : (
+          <span key={wi} className="px-word">
+            {[...part].map((ch, li) => (
+              <span key={li} className="px-pop px-letter" style={{ animationDelay: `${((starts[wi] + li) * 0.04).toFixed(2)}s` }}>
+                {ch}
+              </span>
+            ))}
+          </span>
+        ),
+      )}
+    </>
+  );
+}
 
 function Heading({ id, label }: { id?: string; label: string }) {
   return (
@@ -101,20 +120,11 @@ export function PixelSite({ site }: { site: SiteDoc }) {
 
         <main>
           <section aria-label="Intro" className="px-intro">
-            <div aria-hidden="true" className="px-mono">
-              {MONO.map((m, i) =>
-                m.lit ? (
-                  <span
-                    key={i}
-                    className={`px-pop ${m.first ? "px-mono-h" : "px-mono-s"}`}
-                    style={{ animationDelay: m.delay }}
-                  />
-                ) : (
-                  <span key={i} className="px-mono-off" />
-                ),
-              )}
-            </div>
-            <h1 className="px-h1">{pixel.greeting}</h1>
+            <h1 className="px-h1" aria-label={pixel.greeting}>
+              <span aria-hidden="true">
+                <PoppingText text={pixel.greeting} />
+              </span>
+            </h1>
             {pixel.intro && <p className="px-lede">{pixel.intro}</p>}
             {pixel.ticker && (
               <div className="px-ticker" role="marquee" aria-label={pixel.ticker}>

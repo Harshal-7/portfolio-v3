@@ -1,0 +1,161 @@
+/* Admin-only styles: the pixel password field and the sign-in backdrop. */
+
+/* Sign-in backdrop: a faint dot grid with a soft glow of the accent colour. */
+.ad-backdrop {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(600px 360px at 50% 30%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%),
+    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--fg) 14%, transparent) 1px, transparent 0);
+  background-size:
+    auto,
+    22px 22px;
+}
+
+/* Password field: the real <input> sits on top, invisible but focused and typed into. */
+.pp-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 56px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.pp-field:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.pp-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: text;
+  font-size: 16px; /* keeps iOS from zooming in */
+}
+.pp-slots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.pp-dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  background: var(--accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 70%, transparent);
+  animation: ppIn 0.18s steps(3) both;
+}
+.pp-caret {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  background: var(--fg);
+  opacity: 0;
+}
+.pp-field:focus-within .pp-caret {
+  animation: ppBlink 1s steps(1) infinite;
+}
+.pp-more {
+  flex: none;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--muted);
+}
+.pp-hint {
+  margin-left: auto;
+  flex: none;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+/* Checking: the pixels light up one after another, like a scan. */
+.pp-field[data-status="checking"] .pp-dot {
+  animation: ppScan 0.9s steps(2) infinite;
+}
+.pp-field[data-status="error"] {
+  border-color: var(--danger);
+  animation: ppShake 0.36s steps(6);
+}
+.pp-field[data-status="error"] .pp-dot {
+  background: var(--danger);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--danger) 70%, transparent);
+}
+.pp-field[data-status="ok"] {
+  border-color: #22a06b;
+}
+.pp-field[data-status="ok"] .pp-dot {
+  background: #22a06b;
+  box-shadow: 0 0 10px rgba(34, 160, 107, 0.7);
+}
+
+/* Status light next to the eyebrow text */
+.pp-light {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: var(--muted);
+}
+.pp-light[data-status="checking"] {
+  background: var(--accent);
+  animation: ppBlink 0.6s steps(1) infinite;
+}
+.pp-light[data-status="error"] {
+  background: var(--danger);
+}
+.pp-light[data-status="ok"] {
+  background: #22a06b;
+}
+
+@keyframes ppIn {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes ppBlink {
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes ppScan {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes ppShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+.pp-field[data-status="error"]:focus-within {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger) 14%, transparent);
+}
