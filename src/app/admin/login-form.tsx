@@ -20,7 +20,7 @@ export function LoginForm({ problems }: { problems: string[] }) {
 
       {problems.length > 0 && (
         <div className="mt-5 rounded-xl border border-line bg-surface p-4 text-sm">
-          <p className="font-medium">Setup isn’t finished:</p>
+          <p className="font-medium">Setup isn’t finished. Add these in Vercel → Settings → Environment Variables, then redeploy:</p>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">
             {problems.map((p) => (
               <li key={p}>{p}</li>

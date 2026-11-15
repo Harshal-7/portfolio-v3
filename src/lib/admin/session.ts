@@ -32,9 +32,9 @@ function sessionSecret(): string | null {
 /** Plain-language list of what's missing, shown on the sign-in page. */
 export function adminSetupProblems(): string[] {
   const problems: string[] = [];
-  if (!sessionSecret()) problems.push("ADMIN_SESSION_SECRET is missing or shorter than 32 characters.");
-  if (!process.env.ADMIN_PASSWORD_HASH?.startsWith("scrypt:")) problems.push("ADMIN_PASSWORD_HASH is missing. Run pnpm admin:hash.");
-  if (!process.env.ADMIN_SAVE_PASSWORD_HASH?.startsWith("scrypt:")) problems.push("ADMIN_SAVE_PASSWORD_HASH is missing. Run pnpm admin:hash.");
+  if (!sessionSecret()) problems.push("ADMIN_SESSION_SECRET isn’t set: the key that signs your sign-in cookie.");
+  if (!process.env.ADMIN_PASSWORD_HASH?.startsWith("scrypt:")) problems.push("ADMIN_PASSWORD_HASH isn’t set: the scrambled form of your sign-in password.");
+  if (!process.env.ADMIN_SAVE_PASSWORD_HASH?.startsWith("scrypt:")) problems.push("ADMIN_SAVE_PASSWORD_HASH isn’t set: the scrambled form of your save password.");
   if (!redisConfig() && !localStoresEnabled()) problems.push("Upstash Redis isn't connected (Vercel → Storage).");
   return problems;
 }
