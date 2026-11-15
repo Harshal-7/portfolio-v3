@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { validAdminPath } from "@/lib/admin/route";
 import { adminSetupProblems, isAdmin } from "@/lib/admin/session";
 import { localStoresEnabled, redisConfig } from "@/lib/redis";
 import { defaultSite } from "@/lib/site/defaults";
@@ -17,7 +15,7 @@ export const metadata: Metadata = {
   referrer: "no-referrer",
 };
 
-/** Reached only through the secret ADMIN_PATH (see src/proxy.ts). */
+/** Anyone can open /admin; everything on it needs the sign-in password, and every change the save password. */
 export default function AdminPage() {
   return (
     <main className="mx-auto min-h-dvh max-w-3xl px-4 pb-32 pt-8 font-sans text-[15px] text-fg sm:px-6">
@@ -29,9 +27,6 @@ export default function AdminPage() {
 }
 
 async function Gate() {
-  const secret = validAdminPath(process.env.ADMIN_PATH);
-  if (!secret) notFound();
-
   if (!(await isAdmin())) return <LoginForm problems={adminSetupProblems()} />;
 
   const stored = await getStore()
@@ -56,7 +51,6 @@ async function Gate() {
     <AdminPanel
       initial={stored.doc ?? defaultSite}
       initialCanUndo={stored.history.length > 0}
-      base={`/${secret}`}
       storeReady={!!redisConfig() || localStoresEnabled()}
       blobReady={!!process.env.BLOB_READ_WRITE_TOKEN}
     />

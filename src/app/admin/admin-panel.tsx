@@ -18,7 +18,16 @@ import {
   type SiteDoc,
 } from "@/lib/site/schema";
 
-import { finishResumeUpload, logout, removeResume, saveContent, undoLastSave, type SaveResult } from "./actions";
+import {
+  finishResumeUpload,
+  logout,
+  removeResume,
+  saveContent,
+  savingStatus,
+  undoLastSave,
+  unlockSaving,
+  type SaveResult,
+} from "./actions";
 
 type Status = { kind: "ok" | "error"; text: string; issues?: string[] } | null;
 
@@ -51,7 +60,6 @@ const IMAGE_OPTIONS: { value: ImageKey; label: string }[] = [
 export function AdminPanel(props: {
   initial: SiteDoc;
   initialCanUndo: boolean;
-  base: string;
   storeReady: boolean;
   blobReady: boolean;
 }) {
@@ -62,6 +70,34 @@ export function AdminPanel(props: {
   const [status, setStatus] = useState<Status>(null);
   const [pending, startTransition] = useTransition();
   const dirty = useMemo(() => JSON.stringify(draft) !== JSON.stringify(contentOf(saved)), [draft, saved]);
+  const [askingPassword, setAskingPassword] = useState(false);
+  const answer = useRef<((unlocked: boolean) => void) | null>(null);
+
+  /** Opens the save-password dialog; resolves true once saving is unlocked. */
+  function askForSavePassword(): Promise<boolean> {
+    return new Promise((resolve) => {
+      answer.current = resolve;
+      setAskingPassword(true);
+    });
+  }
+
+  async function ensureUnlocked(): Promise<boolean> {
+    const { unlocked } = await savingStatus();
+    return unlocked || askForSavePassword();
+  }
+
+  /** Runs a change, asking for the save password first when needed (and again if it ran out meanwhile). */
+  async function runChange(change: () => Promise<SaveResult>): Promise<SaveResult | null> {
+    if (!(await ensureUnlocked())) return null;
+    let result = await change();
+    if (!result.ok && result.locked) {
+      if (!(await askForSavePassword())) return null;
+      result = await change();
+    }
+    return result;
+  }
+
+  const notSaved = () => setStatus({ kind: "error", text: "Not saved. Changes need the save password." });
 
   useEffect(() => {
     if (!dirty) return;
@@ -92,13 +128,21 @@ export function AdminPanel(props: {
       });
       return;
     }
-    startTransition(async () => apply(await saveContent(saved.rev, draft), "Saved. The site shows the change now."));
+    startTransition(async () => {
+      const result = await runChange(() => saveContent(saved.rev, draft));
+      if (result) apply(result, "Saved. The site shows the change now.");
+      else notSaved();
+    });
   }
 
   function undo() {
     const note = dirty ? " Your unsaved edits on this page will be lost too." : "";
     if (!window.confirm(`Go back to the version before your last save?${note}`)) return;
-    startTransition(async () => apply(await undoLastSave(saved.rev), "Undone. The site is back to the previous version."));
+    startTransition(async () => {
+      const result = await runChange(() => undoLastSave(saved.rev));
+      if (result) apply(result, "Undone. The site is back to the previous version.");
+      else notSaved();
+    });
   }
 
   const set = <K extends keyof SiteContent>(key: K, value: SiteContent[K]) => setDraft((d) => ({ ...d, [key]: value }));
@@ -158,7 +202,7 @@ export function AdminPanel(props: {
                   />
                   <span className="font-medium">{o.name}</span>
                   <a
-                    href={`${props.base}/preview/${o.value}`}
+                    href={`/admin/preview/${o.value}`}
                     target="_blank"
                     rel="noreferrer"
                     className="ml-auto text-sm text-link underline underline-offset-2"
@@ -384,14 +428,27 @@ export function AdminPanel(props: {
 
       <ResumeCard
         resume={saved.resume}
-        base={props.base}
         rev={saved.rev}
         blobReady={props.blobReady}
         busy={pending}
         onResult={(result, okText) => apply(result, okText, true)}
+        ensureUnlocked={ensureUnlocked}
         onRemove={() => {
           if (!window.confirm("Remove the résumé? /resume will show a “coming soon” note until you upload a new one.")) return;
-          startTransition(async () => apply(await removeResume(saved.rev), "Résumé removed.", true));
+          startTransition(async () => {
+            const result = await runChange(() => removeResume(saved.rev));
+            if (result) apply(result, "Résumé removed.", true);
+            else notSaved();
+          });
+        }}
+      />
+
+      <SavePasswordDialog
+        open={askingPassword}
+        onDone={(unlocked) => {
+          setAskingPassword(false);
+          answer.current?.(unlocked);
+          answer.current = null;
         }}
       />
 
@@ -616,6 +673,78 @@ function ListEditor<T>({
   );
 }
 
+/** The second password, asked before the first change and again every 15 minutes. */
+function SavePasswordDialog({ open, onDone }: { open: boolean; onDone: (unlocked: boolean) => void }) {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  if (!open) return null;
+
+  const close = (unlocked: boolean) => {
+    setPassword("");
+    setError(null);
+    onDone(unlocked);
+  };
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="save-password-title"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+      onKeyDown={(e) => {
+        if (e.key === "Escape" && !busy) close(false);
+      }}
+    >
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          setError(null);
+          const result = await unlockSaving(password);
+          setBusy(false);
+          if (result.ok) close(true);
+          else setError(result.error);
+        }}
+        className="flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-line bg-surface p-5 shadow-xl"
+      >
+        <h2 id="save-password-title" className="text-base font-semibold">
+          Save password
+        </h2>
+        <p className="text-sm text-muted">
+          Changes to the site need the second password. After this, saving stays unlocked for 15 minutes.
+        </p>
+        <input
+          type="password"
+          autoFocus
+          autoComplete="off"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          aria-label="Save password"
+          className={inputClass}
+        />
+        {error && (
+          <p role="alert" className="text-sm text-danger">
+            {error}
+          </p>
+        )}
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={() => close(false)} disabled={busy} className={ghostButton}>
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={busy || password.length === 0}
+            className="h-10 rounded-xl bg-btn px-4 font-medium text-btn-fg disabled:opacity-50"
+          >
+            {busy ? "Checking…" : "Unlock"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 /** Shown in the viewer's own time zone, which the server can't know, hence the warning opt-out. */
 function LocalTime({ iso, dateOnly }: { iso: string; dateOnly?: boolean }) {
   const d = new Date(iso);
@@ -632,12 +761,12 @@ function formatSize(bytes: number): string {
 
 function ResumeCard(props: {
   resume: Resume | null;
-  base: string;
   rev: number;
   blobReady: boolean;
   busy: boolean;
   onResult: (result: SaveResult, okText: string) => void;
   onRemove: () => void;
+  ensureUnlocked: () => Promise<boolean>;
 }) {
   const [uploading, setUploading] = useState(false);
   const input = useRef<HTMLInputElement>(null);
@@ -654,10 +783,14 @@ function ResumeCard(props: {
     }
     setUploading(true);
     try {
+      if (!(await props.ensureUnlocked())) {
+        props.onResult({ ok: false, error: "Not uploaded. Changes need the save password." }, "");
+        return;
+      }
       const name = file.name.replace(/\.pdf$/i, "").replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
       const blob = await upload(`resume/${name || "resume"}.pdf`, file, {
         access: "public",
-        handleUploadUrl: `${props.base}/upload`,
+        handleUploadUrl: "/admin/upload",
         contentType: "application/pdf",
       });
       props.onResult(await finishResumeUpload(props.rev, blob.url), "Résumé updated. The Résumé link now opens the new PDF.");

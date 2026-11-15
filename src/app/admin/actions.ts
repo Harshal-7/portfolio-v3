@@ -7,7 +7,16 @@ import { headers } from "next/headers";
 import { after } from "next/server";
 
 import { verifyPassword } from "@/lib/admin/password";
-import { endSession, NotSignedInError, requireAdmin, startSession } from "@/lib/admin/session";
+import {
+  endSession,
+  isSavingUnlocked,
+  NotSignedInError,
+  requireAdmin,
+  requireSavingUnlocked,
+  SavingLockedError,
+  startSession,
+  unlockSavingForSession,
+} from "@/lib/admin/session";
 import { getAdminState } from "@/lib/admin/state";
 import { defaultSite } from "@/lib/site/defaults";
 import { SITE_TAG } from "@/lib/site/get-site";
@@ -16,30 +25,51 @@ import { isOwnBlobUrl, looksLikePdf, RESUME_MAX_BYTES } from "@/lib/site/resume"
 import { contentSchema, issueText, type Resume, type SiteDoc } from "@/lib/site/schema";
 import { getStore, StoreNotConfiguredError, type WriteResult } from "@/lib/site/store";
 
-// Never redirect to /admin from here: that address is a 404 by design.
-
 export type LoginState = { error?: string; ok?: boolean };
 
-export async function login(_prev: LoginState, formData: FormData): Promise<LoginState> {
+/**
+ * Checks a password against a stored hash, after the rate limit. `bucket` keeps
+ * sign-in and save-password tries counted separately per IP.
+ */
+async function checkPassword(password: unknown, hash: string | undefined, bucket: string): Promise<string | null> {
   const state = getAdminState();
-  const hash = process.env.ADMIN_PASSWORD_HASH;
-  if (!state || !hash) return { error: "Admin isn't set up yet. See the list above." };
-
+  if (!state || !hash) return "Admin isn't set up yet. See the list on the sign-in page.";
   const ip = ipAddress(await headers()) ?? "unknown";
   let allowed: boolean;
   try {
-    allowed = await state.allowLogin(ip);
+    allowed = await state.allowLogin(`${bucket}:${ip}`);
   } catch (error) {
     console.error("[admin] rate limit check failed", error);
-    return { error: "Couldn't reach storage. Try again in a minute." };
+    return "Couldn't reach storage. Try again in a minute.";
   }
-  if (!allowed) return { error: "Too many tries. Wait 15 minutes, then try again." };
+  if (!allowed) return "Too many tries. Wait 15 minutes, then try again.";
+  if (typeof password !== "string" || !(await verifyPassword(password, hash))) return "That password isn't right.";
+  return null;
+}
 
-  const password = formData.get("password");
-  if (typeof password !== "string" || !(await verifyPassword(password, hash))) {
-    return { error: "That password isn't right." };
-  }
+export async function login(_prev: LoginState, formData: FormData): Promise<LoginState> {
+  const error = await checkPassword(formData.get("password"), process.env.ADMIN_PASSWORD_HASH, "login");
+  if (error) return { error };
   await startSession();
+  return { ok: true };
+}
+
+/** Whether changes are unlocked right now (the save password was entered in the last 15 minutes). */
+export async function savingStatus(): Promise<{ unlocked: boolean }> {
+  return { unlocked: await isSavingUnlocked() };
+}
+
+/** The second password: unlocks saving, undo and résumé changes for 15 minutes. */
+export async function unlockSaving(password: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    await requireAdmin();
+  } catch (error) {
+    if (error instanceof NotSignedInError) return { ok: false, error: error.message };
+    throw error;
+  }
+  const error = await checkPassword(password, process.env.ADMIN_SAVE_PASSWORD_HASH, "save");
+  if (error) return { ok: false, error };
+  await unlockSavingForSession();
   return { ok: true };
 }
 
@@ -47,14 +77,17 @@ export async function logout(): Promise<void> {
   await endSession();
 }
 
-export type SaveResult = { ok: true; doc: SiteDoc; canUndo: boolean } | { ok: false; error: string; issues?: string[] };
+export type SaveResult =
+  | { ok: true; doc: SiteDoc; canUndo: boolean }
+  | { ok: false; error: string; issues?: string[]; locked?: boolean };
 
-/** Runs an admin step, turning the usual failures into a message for the page. */
+/** Runs a change, turning the usual failures into a message for the page. */
 async function guarded(run: () => Promise<SaveResult>): Promise<SaveResult> {
   try {
-    await requireAdmin();
+    await requireSavingUnlocked();
     return await run();
   } catch (error) {
+    if (error instanceof SavingLockedError) return { ok: false, error: error.message, locked: true };
     if (error instanceof NotSignedInError || error instanceof StoreNotConfiguredError) {
       return { ok: false, error: error.message };
     }

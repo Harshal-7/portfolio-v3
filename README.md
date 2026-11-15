@@ -7,7 +7,7 @@ There are two designs, and the site shows one at a time:
 - **Notebook**: Fraunces headings with Inter body text, the Indigo palette, a paper-grain background, a pull-cord light bulb for light/dark, and large project tiles.
 - **Pixel**: Pixelify Sans headings with Geist body text, the same Indigo palette, twinkling pixel sparkles, an LED ticker, and a bulb that bursts into pixels.
 
-A password-protected admin page at a secret address switches the design, sets the default light/dark mode, shows or hides sections, edits the text and uploads a new résumé.
+The admin page at `/admin` (or press Ctrl + H on the site) switches the design, sets the default light/dark mode, shows or hides sections, edits the text and uploads a new résumé. It takes two passwords: one to sign in, and a second one before any change is saved. The second one keeps saving unlocked for 15 minutes.
 
 ## Stack
 
@@ -25,16 +25,16 @@ pnpm dev                      # http://localhost:3000
 
 The admin cookie is marked Secure. Browsers treat `http://localhost` as secure, so it works locally without a certificate.
 
-With `SITE_STORE=file` the content lives in `.data/site.json` and admin sessions and rate limits stay in memory, so you can try the admin page without any accounts. You still need `ADMIN_PATH`, `ADMIN_SESSION_SECRET` and `ADMIN_PASSWORD_HASH`.
+With `SITE_STORE=file` the content lives in `.data/site.json` and admin sessions and rate limits stay in memory, so you can try the admin page without any accounts. You still need `ADMIN_SESSION_SECRET`, `ADMIN_PASSWORD_HASH` and `ADMIN_SAVE_PASSWORD_HASH`.
 
 ## Admin secrets
 
 ```bash
-pnpm admin:secrets   # prints a random ADMIN_PATH and ADMIN_SESSION_SECRET
-pnpm admin:hash      # asks for a password and prints ADMIN_PASSWORD_HASH
+pnpm admin:secrets   # prints a random ADMIN_SESSION_SECRET
+pnpm admin:hash      # asks for both passwords and prints both hashes
 ```
 
-The hash uses `:` between its parts, so it is safe to paste into `.env` files. The admin page is then at `/<ADMIN_PATH>`. The plain `/admin` address always returns 404.
+The hashes use `:` between their parts, so they are safe to paste into `.env` files. Only the hashes are stored, never the passwords. Each password allows 5 tries per 15 minutes per IP.
 
 ## Checks
 
