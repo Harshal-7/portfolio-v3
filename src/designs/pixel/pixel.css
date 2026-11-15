@@ -97,7 +97,7 @@
   font-size: 17px;
   width: 100%;
   max-width: 52ch;
-  height: clamp(40px, 6cqi, 46px);
+  height: clamp(48px, 9cqi, 60px);
   border-radius: 10px;
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--line);

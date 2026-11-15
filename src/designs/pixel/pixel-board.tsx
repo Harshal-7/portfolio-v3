@@ -40,9 +40,9 @@ function noise(a: number, b: number, c: number): number {
 
 /**
  * The now-building board: letters made of pixel blocks on a board of dim
- * cells (like the HS mark). It shows one line at a time and switches to a
- * random other line every few seconds; the new line's pixels light up in a
- * random order.
+ * cells (like the HS mark). It shows one line at a time, starting at the
+ * left, and switches to a random other line every few seconds; the new
+ * line's pixels light up in a random order.
  */
 export function PixelBoard({ text, seconds = 4 }: { text: string; seconds?: number }) {
   const lines = useMemo(() => splitTicker(text), [text]);
@@ -83,13 +83,14 @@ export function PixelBoard({ text, seconds = 4 }: { text: string; seconds?: numb
   const { cells, width } = layoutBoard([{ text: line, tone: index % 2 ? "accent" : "fg" }]);
   if (lines.length === 0) return null;
 
-  // Wide enough for the line (it shrinks if it doesn't fit), centred.
-  const viewCols = Math.max(cols, width + 4);
-  const offset = Math.floor((viewCols - width) / 2);
+  // Words start two cells in from the left. A line too long for the board
+  // widens the grid, which shrinks it to fit rather than cutting it off.
+  const offset = 2;
+  const viewCols = Math.max(cols, width + offset * 2);
 
   return (
     <div ref={box} className="pb-board" role="marquee" aria-label={lines.map((l) => (/[.!?]$/.test(l) ? l : `${l}.`)).join(" ")}>
-      <svg className="pb-svg" viewBox={`0 0 ${viewCols} ${ROWS}`} preserveAspectRatio="xMidYMid meet" shapeRendering="crispEdges" aria-hidden="true">
+      <svg className="pb-svg" viewBox={`0 0 ${viewCols} ${ROWS}`} preserveAspectRatio="xMinYMid meet" shapeRendering="crispEdges" aria-hidden="true">
         <defs>
           <pattern id="pb-off" width="1" height="1" patternUnits="userSpaceOnUse">
             <rect className="pb-offcell" x="0.08" y="0.08" width="0.84" height="0.84" />
