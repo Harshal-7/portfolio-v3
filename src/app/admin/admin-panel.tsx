@@ -45,7 +45,7 @@ const TABS: { id: TabId; label: string; icon: IconName; keys: (keyof SiteContent
   { id: "profile", label: "Profile", icon: "profile", keys: ["profile", "pixel"] },
   { id: "work", label: "Work", icon: "work", keys: ["projects", "earlier"] },
   { id: "experience", label: "Experience", icon: "experience", keys: ["experience", "stack"] },
-  { id: "links", label: "Links & résumé", icon: "links", keys: ["links"] },
+  { id: "links", label: "Links & resume", icon: "links", keys: ["links"] },
 ];
 const tabOf = (key: PropertyKey): TabId => TABS.find((t) => t.keys.includes(key as keyof SiteContent))?.id ?? "look";
 
@@ -75,6 +75,8 @@ export function AdminPanel(props: {
   initialCanUndo: boolean;
   storeReady: boolean;
   blobReady: boolean;
+  /** Local development: one-click unlock in the save-password box. */
+  localQuick?: boolean;
 }) {
   const router = useRouter();
   const [saved, setSaved] = useState(props.initial);
@@ -130,7 +132,7 @@ export function AdminPanel(props: {
     return () => window.removeEventListener("beforeunload", warn);
   }, [dirty]);
 
-  /** keepDraft: résumé changes save on their own and must not throw away unsaved text edits. */
+  /** keepDraft: resume changes save on their own and must not throw away unsaved text edits. */
   function apply(result: SaveResult, okText: string, keepDraft = false) {
     if (result.ok) {
       setSaved(result.doc);
@@ -189,7 +191,7 @@ export function AdminPanel(props: {
     <Card key="px" title="Hero" badge="Pixel">
       <Text label="Greeting" value={draft.pixel.greeting} max={60} onChange={(v) => setPixel("greeting", v)} />
       <Area label="Intro" rows={3} value={draft.pixel.intro} max={300} onChange={(v) => setPixel("intro", v)} />
-      <Text label="Board text" hint="Use /// between lines" value={draft.pixel.ticker} max={160} onChange={(v) => setPixel("ticker", v)} />
+      <Text label="Board lines" hint="Use /// between lines · one shows at a time" value={draft.pixel.ticker} max={160} onChange={(v) => setPixel("ticker", v)} />
     </Card>
   );
 
@@ -458,10 +460,10 @@ export function AdminPanel(props: {
               onResult={(result, okText) => apply(result, okText, true)}
               ensureUnlocked={ensureUnlocked}
               onRemove={() => {
-                if (!window.confirm("Remove the résumé? /resume will show a “coming soon” note until you upload a new one.")) return;
+                if (!window.confirm("Remove the resume? /resume will show a “coming soon” note until you upload a new one.")) return;
                 startTransition(async () => {
                   const result = await runChange(() => removeResume(saved.rev));
-                  if (result) apply(result, "Résumé removed.", true);
+                  if (result) apply(result, "Resume removed.", true);
                   else notSaved();
                 });
               }}
@@ -472,6 +474,7 @@ export function AdminPanel(props: {
 
       <SavePasswordDialog
         open={askingPassword}
+        localQuick={props.localQuick}
         onDone={(unlocked) => {
           setAskingPassword(false);
           answer.current?.(unlocked);

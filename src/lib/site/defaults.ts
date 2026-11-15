@@ -32,11 +32,11 @@ export const defaultSite: SiteDoc = {
       "Building something, hiring, or just want to talk about AI apps? Email is the fastest way to reach me.",
   },
   links: [
+    { label: "Resume", href: "/resume" },
     { label: "Email", href: "mailto:shindeharshal009@gmail.com" },
     { label: "GitHub", href: "https://github.com/Harshal-7" },
     { label: "LinkedIn", href: "https://www.linkedin.com/in/harshal-shinde-77a862210" },
     { label: "X", href: "https://x.com/hscodez" },
-    { label: "Résumé", href: "/resume" },
   ],
   projects: [
     {
@@ -135,7 +135,7 @@ export const defaultSite: SiteDoc = {
     greeting: "Hi, I’m Harshal.",
     intro:
       "I build full-stack and AI apps, and I write about what breaks along the way. Next.js up front, FastAPI behind it, AI where it earns its place.",
-    ticker: "NOW BUILDING EVENOR + LIFE VAULT /// FULL-STACK AND AI /// BASED IN INDIA ///",
+    ticker: "HELLO, VISITOR /// PRESS THE BULB /// SHIP IT! /// MADE IN INDIA /// EVALS: 26/26 /// HUH?",
   },
   resume: null,
 };

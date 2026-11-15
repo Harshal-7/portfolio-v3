@@ -7,11 +7,11 @@ There are two designs, and the site shows one at a time:
 - **Notebook**: Fraunces headings with Inter body text, the Indigo palette, a paper-grain background, a pull-cord light bulb for light/dark, and large project tiles.
 - **Pixel**: Pixelify Sans headings with Geist body text, the same Indigo palette, twinkling pixel sparkles, an LED ticker, and a bulb that bursts into pixels.
 
-The admin page at `/admin` (or press H twice quickly on the site) switches the design, sets the default light/dark mode, shows or hides sections, edits the text and uploads a new résumé. It takes two passwords: one to sign in, and a second one before any change is saved. The second one keeps saving unlocked for 15 minutes.
+The admin page at `/admin` (or press H twice quickly on the site) switches the design, sets the default light/dark mode, shows or hides sections, edits the text and uploads a new resume. It takes two passwords: one to sign in, and a second one before any change is saved. The second one keeps saving unlocked for 15 minutes.
 
 ## Stack
 
-Next.js 16 (App Router, Cache Components), React 19, TypeScript, Tailwind v4, Upstash Redis for the content and admin sessions, and a private Vercel Blob store for the résumé PDF, which `/resume` reads and serves under the site's own address. Vercel Web Analytics (cookieless) counts visits to the public pages only; turn it on in the Vercel project's Analytics tab.
+Next.js 16 (App Router, Cache Components), React 19, TypeScript, Tailwind v4, Upstash Redis for the content and admin sessions, and a private Vercel Blob store for the resume PDF, which `/resume` reads and serves under the site's own address. Vercel Web Analytics (cookieless) counts visits to the public pages only; turn it on in the Vercel project's Analytics tab.
 
 The home page is prerendered. Site content is one JSON document in Redis, read through a `'use cache'` function tagged `site`; an admin save calls `updateTag('site')`, so the next visit gets the new content.
 

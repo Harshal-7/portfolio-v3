@@ -45,7 +45,12 @@ describe("splitLead", () => {
 
 describe("splitTicker", () => {
   it("splits the ticker into phrases", () => {
-    expect(splitTicker(defaultSite.pixel.ticker)).toEqual(["NOW BUILDING EVENOR + LIFE VAULT", "FULL-STACK AND AI", "BASED IN INDIA"]);
+    expect(splitTicker("NOW BUILDING EVENOR + LIFE VAULT /// FULL-STACK AND AI /// BASED IN INDIA ///")).toEqual([
+      "NOW BUILDING EVENOR + LIFE VAULT",
+      "FULL-STACK AND AI",
+      "BASED IN INDIA",
+    ]);
+    expect(splitTicker(defaultSite.pixel.ticker)).toHaveLength(6);
     expect(splitTicker("Just one thing")).toEqual(["Just one thing"]);
     expect(splitTicker("   ")).toEqual([]);
   });
@@ -61,7 +66,7 @@ describe("small helpers", () => {
   });
 });
 
-describe("résumé checks", () => {
+describe("resume checks", () => {
   const env = { BLOB_STORE_ID: "store_AbC123xyz", BLOB_WEBHOOK_PUBLIC_KEY: "key" };
 
   it("reads the store id from BLOB_STORE_ID or an older read-write token", () => {
@@ -86,7 +91,7 @@ describe("résumé checks", () => {
     expect(ownBlobAccess("https://abc123xyz.private.blob.vercel-storage.com/r.pdf", {})).toBeNull();
   });
 
-  it("only allows résumé upload names", () => {
+  it("only allows resume upload names", () => {
     expect(isResumePathname("resume/Harshal-CV-1a2b3c4d.pdf")).toBe(true);
     expect(isResumePathname("resume/../secret.pdf")).toBe(false);
     expect(isResumePathname("other/cv.pdf")).toBe(false);

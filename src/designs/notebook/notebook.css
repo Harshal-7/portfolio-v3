@@ -161,7 +161,12 @@ html[data-mode="dark"] .nb-noise {
   text-decoration: none;
   font-size: 14px;
 }
-.nb-pill span {
+.nb-pill-icon {
+  width: 15px;
+  height: 15px;
+  color: var(--muted);
+}
+.nb-pill-arrow {
   color: var(--muted);
 }
 
@@ -557,4 +562,67 @@ html:not([data-mode="dark"]) .nb-filament {
   70% {
     transform: rotate(-5deg);
   }
+}
+
+/* Earlier work and experience: small hover touches. The arrows hop now and
+   then (staggered), and nudge towards the link on hover. */
+.nb-arrow {
+  display: inline-block;
+  margin-left: 4px;
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
+  animation: nbHop 7s ease-in-out infinite;
+}
+.nb-list > li:nth-child(2) .nb-arrow {
+  animation-delay: 1.4s;
+}
+.nb-list > li:nth-child(3) .nb-arrow {
+  animation-delay: 2.8s;
+}
+.nb-list > li:nth-child(4) .nb-arrow {
+  animation-delay: 4.2s;
+}
+.nb-list > li:nth-child(5) .nb-arrow {
+  animation-delay: 5.6s;
+}
+@keyframes nbHop {
+  0%,
+  88%,
+  100% {
+    transform: none;
+  }
+  92% {
+    transform: translate(2px, -2px);
+  }
+}
+.nb-site a.nb-earlier .nb-earlier-name {
+  background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+  transition: background-size 0.25s ease;
+}
+.nb-site a.nb-earlier:hover .nb-earlier-name {
+  background-size: 100% 1px;
+}
+.nb-site a.nb-earlier:hover .nb-arrow {
+  animation: none;
+  transform: translate(3px, -3px);
+  color: var(--link);
+}
+.nb-site .nb-exp {
+  position: relative;
+}
+.nb-exp::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 18px;
+  bottom: 18px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  transform: scaleY(0);
+  transition: transform 0.25s ease;
+}
+.nb-exp:hover::before {
+  transform: scaleY(1);
 }

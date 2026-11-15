@@ -2,12 +2,20 @@
 
 import { useState } from "react";
 
-import { unlockSaving } from "./actions";
+import { devUnlockSaving, unlockSaving } from "./actions";
 import { ghostButton } from "./admin-ui";
 import { PixelPassword, type PasswordStatus } from "./pixel-password";
 
 /** The second password, asked before the first change and again every 15 minutes. */
-export function SavePasswordDialog({ open, onDone }: { open: boolean; onDone: (unlocked: boolean) => void }) {
+export function SavePasswordDialog({
+  open,
+  onDone,
+  localQuick,
+}: {
+  open: boolean;
+  onDone: (unlocked: boolean) => void;
+  localQuick?: boolean;
+}) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -78,6 +86,20 @@ export function SavePasswordDialog({ open, onDone }: { open: boolean; onDone: (u
           </p>
         )}
         <div className="mt-1 flex justify-end gap-2">
+          {localQuick && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={async () => {
+                const result = await devUnlockSaving();
+                if (result.ok) close(true);
+                else setError(result.error);
+              }}
+              className="mr-auto h-10 rounded-xl border border-dashed border-line px-3 font-mono text-[11px] uppercase tracking-[0.12em] text-muted hover:border-accent hover:text-fg"
+            >
+              Local unlock
+            </button>
+          )}
           <button type="button" onClick={() => close(false)} disabled={busy} className={ghostButton}>
             Cancel
           </button>

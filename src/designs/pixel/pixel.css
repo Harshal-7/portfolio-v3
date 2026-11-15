@@ -88,28 +88,20 @@
   }
 }
 
-/* Now-building board: letters made of pixel blocks on a board of dim cells. */
+/* Now-building board: letters made of pixel blocks on a board of dim cells.
+   One line at a time; a new line's pixels light up in a random order. */
 .pb-board {
   position: relative;
   overflow: hidden;
-  height: clamp(46px, 8cqi, 58px);
+  height: clamp(46px, 8cqi, 60px);
   border-radius: 10px;
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--line);
 }
-.pb-defs {
-  position: absolute;
-}
-.px-site .pb-track {
-  display: flex;
-  width: max-content;
-  height: 100%;
-  animation: hsMarquee 50s linear infinite;
-}
 .pb-svg {
   display: block;
+  width: 100%;
   height: 100%;
-  width: auto;
 }
 .pb-offcell {
   fill: var(--pat);
@@ -126,10 +118,15 @@
 .px-site .pb-board * {
   transition: none;
 }
-/* Without motion the board doesn't scroll, so let people swipe through it. */
-@media (prefers-reduced-motion: reduce) {
-  .pb-board {
-    overflow-x: auto;
+.px-site .pb-on {
+  animation: pbIn 0.12s steps(2) both;
+}
+@keyframes pbIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
@@ -221,6 +218,11 @@ html[data-mode="dark"] .px-site .px-pop {
   gap: 10px;
   font-weight: 600;
   font-size: 16px;
+}
+.px-key-icon {
+  width: 14px;
+  height: 14px;
+  flex: none;
 }
 .px-tri {
   width: 0;
@@ -663,4 +665,70 @@ html[data-bulb][data-mode="dark"] .px-site .px-bf {
   75% {
     transform: rotate(-6deg);
   }
+}
+
+/* Side quests and experience: small pixel-style hover touches. */
+.px-arrow {
+  display: inline-block;
+  margin-left: 4px;
+  animation: pxHop 7s steps(1) infinite;
+}
+.px-list > li:nth-child(2) .px-arrow {
+  animation-delay: 1.4s;
+}
+.px-list > li:nth-child(3) .px-arrow {
+  animation-delay: 2.8s;
+}
+.px-list > li:nth-child(4) .px-arrow {
+  animation-delay: 4.2s;
+}
+.px-list > li:nth-child(5) .px-arrow {
+  animation-delay: 5.6s;
+}
+@keyframes pxHop {
+  0%,
+  89%,
+  100% {
+    transform: none;
+  }
+  91%,
+  95% {
+    transform: translate(2px, -2px);
+  }
+}
+.px-site a.px-earlier:hover .px-earlier-name {
+  color: var(--accent);
+}
+.px-site a.px-earlier:hover .px-arrow {
+  color: var(--accent);
+  animation: pxBlinkArrow 0.6s steps(1) infinite;
+}
+@keyframes pxBlinkArrow {
+  0% {
+    transform: translate(3px, -3px);
+  }
+  50% {
+    transform: none;
+  }
+}
+.px-site .px-exp {
+  position: relative;
+  transition: transform 0.12s steps(2);
+}
+.px-exp::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 22px;
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  box-shadow: 2px 2px 0 0 var(--fg);
+  opacity: 0;
+}
+.px-site .px-exp:hover {
+  transform: translateX(4px);
+}
+.px-exp:hover::before {
+  opacity: 1;
 }

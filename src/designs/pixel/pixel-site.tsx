@@ -1,8 +1,9 @@
 import type { CSSProperties, ReactNode } from "react";
 
 import type { SiteDoc } from "@/lib/site/schema";
-import { splitLead, visibleSections } from "@/lib/site/view";
+import { newTab, splitLead, visibleSections } from "@/lib/site/view";
 
+import { linkKind, PixelIcon } from "../shared/link-icons";
 import { footerText, Paragraphs, ProjectMedia, type Labels } from "../shared/parts";
 import { PixelBoard } from "./pixel-board";
 import { PixelBulb } from "./pixel-bulb";
@@ -66,7 +67,7 @@ function Heading({ id, label }: { id?: string; label: string }) {
 function Key({ href, children, accent, className }: { href: string; children: ReactNode; accent?: boolean; className?: string }) {
   return (
     <span className="px-keywrap">
-      <a href={href} className={`px-key${accent ? " px-key-accent" : ""}${className ? ` ${className}` : ""}`}>
+      <a href={href} {...newTab(href)} className={`px-key${accent ? " px-key-accent" : ""}${className ? ` ${className}` : ""}`}>
         {children}
       </a>
     </span>
@@ -135,6 +136,7 @@ export function PixelSite({ site }: { site: SiteDoc }) {
               <nav aria-label="Links" className="px-keys">
                 {site.links.map((l, i) => (
                   <Key key={`${i}-${l.label}`} href={l.href}>
+                    <PixelIcon kind={linkKind(l.href)} className="px-key-icon" />
                     {l.label}
                   </Key>
                 ))}
@@ -174,7 +176,7 @@ export function PixelSite({ site }: { site: SiteDoc }) {
                               </Key>
                             )}
                             {p.codeHref && (
-                              <a href={p.codeHref} className="px-source">
+                              <a href={p.codeHref} {...newTab(p.codeHref)} className="px-source">
                                 Source
                               </a>
                             )}
@@ -197,7 +199,11 @@ export function PixelSite({ site }: { site: SiteDoc }) {
                             {(e.meta || e.href) && (
                               <span className="px-earlier-meta">
                                 {e.meta}
-                                {e.href ? " ↗" : ""}
+                                {e.href && (
+                                  <span aria-hidden="true" className="px-arrow">
+                                    ↗
+                                  </span>
+                                )}
                               </span>
                             )}
                           </span>
@@ -207,7 +213,7 @@ export function PixelSite({ site }: { site: SiteDoc }) {
                       return (
                         <li key={`${i}-${e.name}`}>
                           {e.href ? (
-                            <a href={e.href} className="px-earlier">
+                            <a href={e.href} {...newTab(e.href)} className="px-earlier">
                               {body}
                             </a>
                           ) : (

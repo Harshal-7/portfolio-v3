@@ -1,6 +1,7 @@
 import type { SiteDoc } from "@/lib/site/schema";
-import { findLink, visibleSections } from "@/lib/site/view";
+import { findLink, newTab, visibleSections } from "@/lib/site/view";
 
+import { LineIcon, linkKind } from "../shared/link-icons";
 import { footerText, NowLine, Paragraphs, ProjectMedia, type Labels } from "../shared/parts";
 import { PullCordBulb } from "./pull-cord-bulb";
 
@@ -71,8 +72,12 @@ export function NotebookSite({ site }: { site: SiteDoc }) {
             {site.links.length > 0 && (
               <nav aria-label="Links" className="nb-links hs-rise-3">
                 {site.links.map((l, i) => (
-                  <a key={`${i}-${l.label}`} href={l.href} className="nb-pill hs-lift">
-                    {l.label} <span aria-hidden="true">↗</span>
+                  <a key={`${i}-${l.label}`} href={l.href} {...newTab(l.href)} className="nb-pill hs-lift">
+                    <LineIcon kind={linkKind(l.href)} className="nb-pill-icon" />
+                    {l.label}
+                    <span aria-hidden="true" className="nb-pill-arrow">
+                      ↗
+                    </span>
                   </a>
                 ))}
               </nav>
@@ -91,7 +96,7 @@ export function NotebookSite({ site }: { site: SiteDoc }) {
                         <div className="nb-tile-top">
                           <h3 className="nb-tile-name">{p.name}</h3>
                           {p.liveHref && (
-                            <a href={p.liveHref} aria-label={`Open ${p.name}`} className="nb-open">
+                            <a href={p.liveHref} {...newTab(p.liveHref)} aria-label={`Open ${p.name}`} className="nb-open">
                               ↗
                             </a>
                           )}
@@ -124,7 +129,11 @@ export function NotebookSite({ site }: { site: SiteDoc }) {
                             {(e.meta || e.href) && (
                               <span className="nb-earlier-meta">
                                 {e.meta}
-                                {e.href ? " ↗" : ""}
+                                {e.href && (
+                                  <span aria-hidden="true" className="nb-arrow">
+                                    ↗
+                                  </span>
+                                )}
                               </span>
                             )}
                           </span>
@@ -134,7 +143,7 @@ export function NotebookSite({ site }: { site: SiteDoc }) {
                       return (
                         <li key={`${i}-${e.name}`}>
                           {e.href ? (
-                            <a href={e.href} className="nb-earlier">
+                            <a href={e.href} {...newTab(e.href)} className="nb-earlier">
                               {body}
                             </a>
                           ) : (
@@ -201,7 +210,7 @@ export function NotebookSite({ site }: { site: SiteDoc }) {
                     Email me <span aria-hidden="true">→</span>
                   </a>
                   {linkedIn && (
-                    <a href={linkedIn.href} className="nb-btn nb-btn-ghost hs-lift">
+                    <a href={linkedIn.href} {...newTab(linkedIn.href)} className="nb-btn nb-btn-ghost hs-lift">
                       {linkedIn.label}
                     </a>
                   )}

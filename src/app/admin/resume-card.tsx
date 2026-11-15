@@ -45,7 +45,7 @@ export function ResumeCard(props: {
         handleUploadUrl: "/admin/upload",
         contentType: "application/pdf",
       });
-      props.onResult(await finishResumeUpload(props.rev, blob.url), "Résumé updated. The Résumé link now opens the new PDF.");
+      props.onResult(await finishResumeUpload(props.rev, blob.url), "Resume updated. The Resume link now opens the new PDF.");
     } catch (error) {
       props.onResult({ ok: false, error: error instanceof Error ? error.message : "The upload failed." }, "");
     } finally {
@@ -56,7 +56,7 @@ export function ResumeCard(props: {
 
   return (
     <Card
-      title="Résumé"
+      title="Resume"
       aside={
         <a href="/resume" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-link">
           /resume <Icon name="external" className="size-3.5" />
@@ -87,7 +87,7 @@ export function ResumeCard(props: {
             type="button"
             onClick={props.onRemove}
             disabled={disabled}
-            aria-label="Remove résumé"
+            aria-label="Remove resume"
             title="Remove"
             className="grid size-9 place-items-center rounded-lg text-muted transition hover:bg-danger/10 hover:text-danger disabled:opacity-30"
           >

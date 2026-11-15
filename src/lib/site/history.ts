@@ -57,7 +57,7 @@ export function applyUndo(
   };
 }
 
-/** Résumé files that `dropped` versions used and no kept version still points to. */
+/** Resume files that `dropped` versions used and no kept version still points to. */
 export function orphanedResumeUrls(dropped: SiteDoc[], kept: SiteDoc[]): string[] {
   const inUse = new Set(kept.map((d) => d.resume?.url).filter(Boolean));
   const out = new Set<string>();

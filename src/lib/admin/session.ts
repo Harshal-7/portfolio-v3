@@ -95,7 +95,7 @@ export async function unlockSavingForSession(): Promise<void> {
 }
 
 /** Server Actions and Route Handlers only (it sets a cookie). */
-export async function startSession(): Promise<void> {
+export async function startSession(): Promise<string> {
   const secret = sessionSecret();
   const state = getAdminState();
   if (!secret || !state) throw new Error("Admin isn't set up.");
@@ -108,6 +108,7 @@ export async function startSession(): Promise<void> {
     path: "/",
     maxAge: SESSION_TTL_SECONDS,
   });
+  return id;
 }
 
 /** Server Actions and Route Handlers only (it clears a cookie). */

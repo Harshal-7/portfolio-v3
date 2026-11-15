@@ -18,6 +18,7 @@ import {
   unlockSavingForSession,
 } from "@/lib/admin/session";
 import { getAdminState } from "@/lib/admin/state";
+import { localStoresEnabled } from "@/lib/redis";
 import { defaultSite } from "@/lib/site/defaults";
 import { SITE_TAG } from "@/lib/site/get-site";
 import { orphanedResumeUrls } from "@/lib/site/history";
@@ -54,12 +55,36 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
   return { ok: true };
 }
 
+/**
+ * Local development only (SITE_STORE=file and not a production build): sign in
+ * and unlock saving in one click. Refused everywhere else, including Vercel.
+ */
+export async function devSignIn(): Promise<LoginState> {
+  if (!localStoresEnabled()) return { error: "Not available here." };
+  const id = await startSession();
+  await getAdminState()!.unlockSaving(id);
+  return { ok: true };
+}
+
+/** Local development only: unlock saving without the save password. */
+export async function devUnlockSaving(): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!localStoresEnabled()) return { ok: false, error: "Not available here." };
+  try {
+    await requireAdmin();
+  } catch (error) {
+    if (error instanceof NotSignedInError) return { ok: false, error: error.message };
+    throw error;
+  }
+  await unlockSavingForSession();
+  return { ok: true };
+}
+
 /** Whether changes are unlocked right now (the save password was entered in the last 15 minutes). */
 export async function savingStatus(): Promise<{ unlocked: boolean }> {
   return { unlocked: await isSavingUnlocked() };
 }
 
-/** The second password: unlocks saving, undo and résumé changes for 15 minutes. */
+/** The second password: unlocks saving, undo and resume changes for 15 minutes. */
 export async function unlockSaving(password: string): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
     await requireAdmin();
@@ -98,7 +123,7 @@ async function guarded(run: () => Promise<SaveResult>): Promise<SaveResult> {
 
 const CONFLICT = "This page is out of date: the site was changed in another tab. Reload to get the latest, then redo your edit.";
 
-/** After a save: refresh the public page, and delete résumé files nothing points to any more. */
+/** After a save: refresh the public page, and delete resume files nothing points to any more. */
 async function finish(result: WriteResult): Promise<SaveResult> {
   if (!result.ok) {
     return { ok: false, error: result.reason === "empty" ? "There's nothing to undo." : CONFLICT };
@@ -112,7 +137,7 @@ async function finish(result: WriteResult): Promise<SaveResult> {
       try {
         await del(orphans);
       } catch (error) {
-        console.error("[admin] couldn't delete old résumé files", error);
+        console.error("[admin] couldn't delete old resume files", error);
       }
     });
   }
@@ -189,7 +214,7 @@ export async function finishResumeUpload(expectedRev: number, url: string): Prom
 
     const info = await head(url);
     if (!isResumePathname(info.pathname)) return reject("That upload has an unexpected name.");
-    if (info.contentType !== "application/pdf") return reject("Only PDF files can be used as the résumé.");
+    if (info.contentType !== "application/pdf") return reject("Only PDF files can be used as the resume.");
     if (info.size > RESUME_MAX_BYTES) return reject("The PDF is over 5 MB. Export a smaller one and try again.");
     if (!looksLikePdf(await firstBytes(url, access))) return reject("That file isn't a real PDF.");
 

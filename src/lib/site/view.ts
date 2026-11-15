@@ -85,3 +85,11 @@ export function splitTicker(text: string): string[] {
     .filter(Boolean);
   return parts.length ? parts : [text.trim()].filter(Boolean);
 }
+
+/**
+ * External links and the resume open in a new tab, so the portfolio stays open.
+ * In-page anchors and mailto: links open as usual.
+ */
+export function newTab(href: string): { target?: "_blank"; rel?: string } {
+  return href.startsWith("https://") || href === "/resume" ? { target: "_blank", rel: "noopener noreferrer" } : {};
+}
