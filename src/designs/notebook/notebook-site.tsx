@@ -86,15 +86,7 @@ export function NotebookSite({ site }: { site: SiteDoc }) {
                 <div className="nb-tiles">
                   {site.projects.map((p, i) => (
                     <article key={`${i}-${p.name}`} className="nb-tile hs-lift">
-                      <ProjectMedia
-                        project={p}
-                        className="nb-media"
-                        phonesClass="nb-phones"
-                        phoneClass="nb-phone"
-                        backClass="nb-phone-back"
-                        shotClass="nb-shot"
-                        phoneWidth={148}
-                      />
+                      <ProjectMedia project={p} className="nb-media" phoneClass="nb-clip" />
                       <div className="nb-tile-body">
                         <div className="nb-tile-top">
                           <h3 className="nb-tile-name">{p.name}</h3>

@@ -54,7 +54,7 @@ export const defaultSite: SiteDoc = {
     {
       name: "Life Vault",
       tag: "Ask your paperwork anything.",
-      one: "Bills, warranties, insurance and rent agreements in one place. Ask a question and get the answer with the exact line it came from.",
+      one: "Bills, warranties and agreements in one place. Ask anything, see the exact line it came from.",
       stack: ["Next.js", "FastAPI", "Redis worker", "Supabase + pgvector", "Gemini"],
       status: "Live",
       liveHref: "https://life-vault-seven.vercel.app",

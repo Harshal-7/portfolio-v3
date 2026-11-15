@@ -206,31 +206,25 @@ html[data-mode="dark"] .nb-noise {
   height: 270px;
   overflow: hidden;
 }
-.nb-phones {
+/* Demo clip in a phone, cut off by the bottom of the tile. */
+.nb-site .nb-clip {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 30px;
-  display: flex;
-  justify-content: center;
-  gap: 14px;
-}
-.nb-site .nb-phone {
+  top: 24px;
+  left: 50%;
   display: block;
-  width: 148px;
+  width: 176px;
   height: auto;
-  border-radius: 24px 24px 0 0;
-  border: 5px solid;
-  border-bottom: 0;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  transform: translateX(-50%);
   transition: none;
 }
-.nb-phone-back {
-  transform: translateY(28px);
+.nb-clip.is-framed {
+  border-radius: 24px;
 }
-.nb-shot {
-  object-fit: contain;
-  object-position: center;
+.nb-clip.is-bezel {
+  border: 5px solid;
+  border-bottom: 0;
+  border-radius: 26px 26px 0 0;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
 }
 .nb-tile-body {
   padding: 20px 22px 22px;

@@ -149,15 +149,7 @@ export function PixelSite({ site }: { site: SiteDoc }) {
                 <div className="px-cards">
                   {site.projects.map((p, i) => (
                     <article key={`${i}-${p.name}`} className="px-card">
-                      <ProjectMedia
-                        project={p}
-                        className="px-media"
-                        phonesClass="px-phones"
-                        phoneClass="px-phone"
-                        backClass="px-phone-back"
-                        shotClass="px-shot"
-                        phoneWidth={132}
-                      />
+                      <ProjectMedia project={p} className="px-media" phoneClass="px-clip" />
                       <div className="px-card-body">
                         <div className="px-card-top">
                           <h3 className="px-card-name">{p.name}</h3>
