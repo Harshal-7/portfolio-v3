@@ -1,0 +1,628 @@
+/* Pixel design. Values come from the canvas engine (Quiet.dc.html): layout 6,
+   fonts 6, colours 1, background 6, switch 6, cards 6. */
+
+.px-site {
+  --px-head: var(--font-pixelify), ui-monospace, Menlo, monospace;
+  --px-body: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --px-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --px-dot: var(--font-doto), "DotGothic16", ui-monospace, monospace;
+  --px-frame: 0 -3px 0 0 var(--fg), 0 3px 0 0 var(--fg), -3px 0 0 0 var(--fg), 3px 0 0 0 var(--fg);
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  container-type: inline-size;
+  overflow-x: clip;
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: var(--px-body);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.px-site * {
+  transition:
+    background-color 0.4s ease,
+    border-color 0.4s ease,
+    color 0.4s ease;
+}
+
+/* Background 6: twinkling plus-shaped pixel sparkles near the edges. */
+.px-sparks {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.px-site .px-spark {
+  position: absolute;
+  animation: hsTwinkle 4s steps(3) infinite;
+  transition: none;
+}
+
+.px-wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+/* Header */
+.px-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 76px;
+  padding-right: 72px;
+}
+.px-badge {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-family: var(--px-head);
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 3px 3px 0 0 var(--fg);
+}
+.px-name {
+  font-family: var(--px-head);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* Intro */
+.px-intro {
+  padding: 26px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.px-mono {
+  display: grid;
+  grid-template-columns: repeat(11, 8px);
+  grid-auto-rows: 8px;
+  gap: 1px;
+  width: max-content;
+}
+.px-mono-off {
+  background: var(--pat);
+}
+.px-mono-h {
+  background: var(--fg);
+}
+.px-mono-s {
+  background: var(--accent);
+}
+/* The monogram pops in on load and again on every theme switch. */
+html[data-mode="light"] .px-site .px-pop {
+  animation: hsPopA 0.5s steps(4) both;
+}
+html[data-mode="dark"] .px-site .px-pop {
+  animation: hsPopB 0.5s steps(4) both;
+}
+.px-h1 {
+  margin: 0;
+  font-family: var(--px-head);
+  font-weight: 600;
+  font-size: clamp(40px, 10cqi, 72px);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+.px-lede {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--muted);
+  max-width: 52ch;
+  text-wrap: pretty;
+}
+
+/* LED ticker */
+.px-ticker {
+  position: relative;
+  overflow: hidden;
+  height: 46px;
+  border-radius: 10px;
+  background: #14111c;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    inset 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+.px-site .px-marquee {
+  display: flex;
+  width: max-content;
+  height: 100%;
+  align-items: center;
+  animation: hsMarquee 24s linear infinite;
+}
+.px-marquee span {
+  padding: 0 10px;
+  font-family: var(--px-dot);
+  font-weight: 900;
+  font-size: 21px;
+  letter-spacing: 0.06em;
+  color: #ffc83d;
+  text-shadow: 0 0 8px rgba(255, 200, 61, 0.55);
+  white-space: nowrap;
+}
+
+/* Pixel keys: a raised key over a dark base that presses down. */
+.px-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 12px;
+  padding-top: 6px;
+}
+.px-keywrap {
+  display: inline-flex;
+  background: var(--fg);
+}
+.px-site .px-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  background: var(--surface);
+  color: var(--fg);
+  text-decoration: none;
+  font-family: var(--px-head);
+  font-size: 15px;
+  box-shadow: inset 0 0 0 2px var(--fg);
+  transform: translateY(-4px);
+  transition:
+    transform 0.1s steps(2),
+    background-color 0.4s ease,
+    color 0.4s ease;
+}
+.px-site .px-key:hover {
+  transform: translateY(-6px);
+}
+.px-site .px-key:active {
+  transform: translateY(0);
+}
+.px-site .px-key-accent {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+.px-site .px-key-small {
+  min-height: 42px;
+}
+.px-site .px-key-big {
+  min-height: 48px;
+  padding: 0 18px;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 16px;
+}
+.px-tri {
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 7px solid currentColor;
+}
+
+/* Section headings */
+.px-h2row {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 68px 0 18px;
+  scroll-margin-top: 16px;
+}
+.px-bullet {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  background: var(--accent);
+  box-shadow: 3px 3px 0 0 var(--fg);
+}
+.px-h2 {
+  margin: 0;
+  font-family: var(--px-head);
+  font-size: clamp(24px, 5.6cqi, 32px);
+  font-weight: 600;
+  line-height: 1.1;
+}
+.px-sub {
+  margin: 44px 0 4px;
+  font-family: var(--px-mono);
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.px-sub-exp {
+  margin-top: 40px;
+}
+
+/* Pixel cards */
+.px-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px 24px;
+  padding: 4px 10px 10px 4px;
+}
+.px-site .px-card {
+  flex: 1 1 300px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  box-shadow:
+    var(--px-frame),
+    9px 9px 0 0 var(--accent-soft);
+  transition:
+    transform 0.14s steps(2),
+    background-color 0.4s ease;
+}
+.px-site .px-card:hover {
+  transform: translate(-3px, -3px);
+}
+.px-media {
+  position: relative;
+  height: 230px;
+  overflow: hidden;
+  border-bottom: 3px solid var(--fg);
+}
+.px-phones {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 26px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+.px-site .px-phone {
+  display: block;
+  width: 132px;
+  height: auto;
+  border: 4px solid;
+  border-bottom: 0;
+  transition: none;
+}
+.px-phone-back {
+  transform: translateY(24px);
+}
+.px-shot {
+  object-fit: contain;
+  object-position: center;
+}
+.px-card-body {
+  padding: 16px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+.px-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.px-card-name {
+  margin: 0;
+  font-family: var(--px-head);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.15;
+}
+.px-status {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  background: var(--pill-bg);
+  color: var(--pill-fg);
+  font-family: var(--px-dot);
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+}
+.px-status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: #22a06b;
+}
+.px-tag {
+  margin: 0;
+  font-family: var(--px-head);
+  font-size: 17px;
+  line-height: 1.3;
+}
+.px-one {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+.px-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.px-chip {
+  font-family: var(--px-mono);
+  font-size: 12px;
+  padding: 3px 7px;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+}
+.px-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  margin-top: 8px;
+}
+.px-source {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--fg);
+  font-family: var(--px-mono);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Lists */
+.px-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.px-list > li {
+  border-top: 1px solid var(--line);
+}
+.px-earlier {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 13px 0;
+  min-height: 44px;
+  box-sizing: border-box;
+  color: var(--fg);
+  text-decoration: none;
+}
+.px-earlier-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.px-earlier-name {
+  font-family: var(--px-head);
+  font-weight: 600;
+  font-size: 15.5px;
+}
+.px-earlier-meta {
+  flex: none;
+  font-family: var(--px-mono);
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.px-earlier-what {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.px-about {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.px-about p {
+  margin: 0;
+  font-size: 16.5px;
+  line-height: 1.7;
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+.px-exp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 20px;
+  padding: 16px 0;
+}
+.px-exp-main {
+  flex: 1 1 260px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.px-org {
+  font-family: var(--px-head);
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 1.2;
+}
+.px-exp-role {
+  font-size: 15px;
+  color: var(--muted);
+}
+.px-exp-what {
+  font-size: 15px;
+  line-height: 1.6;
+  margin-top: 4px;
+}
+.px-when {
+  flex: none;
+  font-family: var(--px-mono);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Stack ("Inventory") */
+.px-stack {
+  margin: 0;
+}
+.px-stack > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 18px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+.px-stack dt {
+  flex: 0 0 110px;
+  font-family: var(--px-mono);
+  font-size: 13px;
+  color: var(--muted);
+  padding-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.px-stack dd {
+  margin: 0;
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+/* Contact */
+.px-contact {
+  margin: 3px;
+  padding: 22px 20px;
+  background: var(--surface);
+  box-shadow: var(--px-frame);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.px-contact-lead {
+  margin: 0;
+  font-family: var(--px-head);
+  font-weight: 600;
+  font-size: clamp(22px, 5.4cqi, 32px);
+  line-height: 1.2;
+  text-wrap: balance;
+}
+.px-contact-rest {
+  margin: -8px 0 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.px-contact-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 16px;
+}
+.px-email {
+  font-family: var(--px-mono);
+  font-size: 13px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.px-footer {
+  margin-top: 80px;
+  padding: 22px 0 40px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 18px;
+  font-family: var(--px-mono);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Pixel bulb (switch 6). Lit means light theme. */
+.px-bulb {
+  position: absolute;
+  z-index: 5;
+  top: 0;
+  right: 26px;
+  width: 44px;
+  height: 90px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.px-cord {
+  flex: none;
+  width: 4px;
+  height: 30px;
+  background: repeating-linear-gradient(to bottom, var(--fg) 0, var(--fg) 4px, transparent 4px, transparent 7px);
+}
+.px-site .px-bulb-grid {
+  position: relative;
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(9, 4px);
+  grid-auto-rows: 4px;
+  transition: filter 0.35s ease;
+}
+html:not([data-mode="dark"]) .px-bulb-grid {
+  filter: drop-shadow(0 0 6px rgba(255, 196, 0, 0.8)) drop-shadow(0 0 16px rgba(255, 196, 0, 0.35));
+}
+.px-c-X {
+  background: var(--line);
+}
+.px-c-H {
+  background: var(--surface2);
+}
+html:not([data-mode="dark"]) .px-c-X {
+  background: #ffc93c;
+}
+html:not([data-mode="dark"]) .px-c-H {
+  background: #fff4c7;
+}
+.px-c-B {
+  background: var(--muted);
+}
+.px-c-s {
+  background: var(--line);
+}
+.px-pt {
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  width: 0;
+  height: 0;
+}
+.px-pt-dot {
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  width: 4px;
+  height: 4px;
+  opacity: 0;
+}
+/* data-bulb is set on the first press, so the burst never plays on page load. */
+html[data-bulb][data-mode="light"] .px-site .px-bn {
+  animation: hsBnA 0.6s steps(5) both;
+}
+html[data-bulb][data-mode="dark"] .px-site .px-bn {
+  animation: hsBnB 0.6s steps(5) both;
+}
+html[data-bulb][data-mode="light"] .px-site .px-bf {
+  animation: hsBfA 0.75s steps(6) both;
+}
+html[data-bulb][data-mode="dark"] .px-site .px-bf {
+  animation: hsBfB 0.75s steps(6) both;
+}
