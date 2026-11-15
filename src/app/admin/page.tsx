@@ -19,8 +19,8 @@ export const metadata: Metadata = {
 /** Anyone can open /admin; everything on it needs the sign-in password, and every change the save password. */
 export default function AdminPage() {
   return (
-    <main className="mx-auto min-h-dvh max-w-3xl px-4 pb-32 pt-8 font-sans text-[15px] text-fg sm:px-6">
-      <Suspense fallback={<p className="text-muted">Loading…</p>}>
+    <main className="min-h-dvh font-sans text-[15px] text-fg">
+      <Suspense fallback={<p className="p-8 font-mono text-xs uppercase tracking-[0.16em] text-muted">Loading…</p>}>
         <Gate />
       </Suspense>
     </main>
@@ -38,7 +38,7 @@ async function Gate() {
     });
   if (!stored) {
     return (
-      <div className="rounded-2xl border border-line bg-surface p-5">
+      <div className="mx-auto mt-10 max-w-xl rounded-2xl border border-line bg-surface p-5">
         <h1 className="text-lg font-semibold">The saved content couldn’t be read</h1>
         <p className="mt-2 text-muted">
           Storage didn’t answer, or the saved document no longer matches the expected shape. The public site is showing

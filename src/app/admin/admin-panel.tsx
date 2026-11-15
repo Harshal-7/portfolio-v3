@@ -28,6 +28,8 @@ import {
   unlockSaving,
   type SaveResult,
 } from "./actions";
+import { clearDraft, publishDraft } from "./draft-channel";
+import { PixelPassword, type PasswordStatus } from "./pixel-password";
 
 type Status = { kind: "ok" | "error"; text: string; issues?: string[] } | null;
 
@@ -44,10 +46,10 @@ const MODE_OPTIONS: { value: DefaultMode; label: string }[] = [
 
 const SECTION_LABELS: Record<SectionKey, string> = {
   projects: "Projects",
-  earlier: "Earlier work (Side quests in Pixel)",
+  earlier: "Earlier work",
   about: "About",
   experience: "Experience",
-  stack: "Stack (Inventory in Pixel)",
+  stack: "Stack",
   contact: "Say hi",
 };
 
@@ -98,6 +100,11 @@ export function AdminPanel(props: {
   }
 
   const notSaved = () => setStatus({ kind: "error", text: "Not saved. Changes need the save password." });
+
+  // Keep the preview tab in step with every edit.
+  useEffect(() => {
+    publishDraft(draft);
+  }, [draft]);
 
   useEffect(() => {
     if (!dirty) return;
@@ -152,10 +159,14 @@ export function AdminPanel(props: {
     setDraft((d) => ({ ...d, pixel: { ...d.pixel, [key]: value } }));
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 pb-40 pt-8 sm:px-6">
+      <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Site admin</h1>
+          <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-muted">
+            <span className="pp-light" data-status="ok" aria-hidden="true" />
+            /admin · signed in
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Site admin</h1>
           <p className="text-sm text-muted">
             Last saved <LocalTime iso={saved.updatedAt} /> · version {saved.rev}
           </p>
@@ -166,6 +177,7 @@ export function AdminPanel(props: {
           </a>
           <form
             action={async () => {
+              clearDraft();
               await logout();
               router.refresh();
             }}
@@ -181,267 +193,274 @@ export function AdminPanel(props: {
         <Banner>Storage isn’t connected, so saving won’t work yet. Connect Upstash Redis in Vercel → Storage.</Banner>
       )}
 
-      <Card title="Look" hint="Applies to every visitor as soon as you save.">
-        <fieldset className="flex flex-col gap-2">
-          <legend className={labelText}>Design</legend>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {DESIGN_OPTIONS.map((o) => (
-              <label
-                key={o.value}
-                className={`flex cursor-pointer flex-col gap-1 rounded-xl border p-3 ${
-                  draft.design === o.value ? "border-accent bg-accent-soft" : "border-line"
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="design"
-                    checked={draft.design === o.value}
-                    onChange={() => set("design", o.value)}
-                    className="accent-accent"
-                  />
-                  <span className="font-medium">{o.name}</span>
-                  <a
-                    href={`/admin/preview/${o.value}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="ml-auto text-sm text-link underline underline-offset-2"
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        <div className="flex flex-col gap-6">
+          <Card title="Look" hint="Applies to every visitor as soon as you save.">
+            <fieldset className="flex flex-col gap-2">
+              <legend className={labelText}>Design</legend>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
+                {DESIGN_OPTIONS.map((o) => (
+                  <label
+                    key={o.value}
+                    className={`flex cursor-pointer flex-col gap-1 rounded-xl border p-3 ${
+                      draft.design === o.value ? "border-accent bg-accent-soft" : "border-line"
+                    }`}
                   >
-                    Preview ↗
-                  </a>
-                </span>
-                <span className="text-sm text-muted">{o.about}</span>
-              </label>
-            ))}
-          </div>
-          <p className="text-xs text-muted">Previews show the last saved text in that design.</p>
-        </fieldset>
+                    <span className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="design"
+                        checked={draft.design === o.value}
+                        onChange={() => set("design", o.value)}
+                        className="accent-accent"
+                      />
+                      <span className="font-medium">{o.name}</span>
+                      <a
+                        href={`/admin/preview?design=${o.value}`}
+                        target="hs-preview"
+                        className="ml-auto text-sm text-link underline underline-offset-2"
+                      >
+                        Preview ↗
+                      </a>
+                    </span>
+                    <span className="text-sm text-muted">{o.about}</span>
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-muted">Preview opens a tab that follows your edits as you type, before you save.</p>
+            </fieldset>
 
-        <fieldset className="flex flex-col gap-2">
-          <legend className={labelText}>Theme for first-time visitors</legend>
-          <div className="flex flex-wrap gap-x-5 gap-y-2">
-            {MODE_OPTIONS.map((o) => (
-              <label key={o.value} className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="mode"
-                  checked={draft.defaultMode === o.value}
-                  onChange={() => set("defaultMode", o.value)}
-                  className="accent-accent"
-                />
-                {o.label}
-              </label>
-            ))}
-          </div>
-          <p className="text-xs text-muted">Once a visitor presses the bulb, their own choice wins on that device.</p>
-        </fieldset>
+            <fieldset className="flex flex-col gap-2">
+              <legend className={labelText}>Theme for first-time visitors</legend>
+              <div className="flex flex-wrap gap-x-5 gap-y-2">
+                {MODE_OPTIONS.map((o) => (
+                  <label key={o.value} className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="mode"
+                      checked={draft.defaultMode === o.value}
+                      onChange={() => set("defaultMode", o.value)}
+                      className="accent-accent"
+                    />
+                    {o.label}
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-muted">Once a visitor presses the bulb, their own choice wins on that device.</p>
+            </fieldset>
 
-        <fieldset className="flex flex-col gap-2">
-          <legend className={labelText}>Sections to show</legend>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {SECTION_KEYS.map((key) => (
-              <label key={key} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={draft.sections[key]}
-                  onChange={(e) => set("sections", { ...draft.sections, [key]: e.target.checked })}
-                  className="size-4 accent-accent"
-                />
-                {SECTION_LABELS[key]}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-      </Card>
+            <fieldset className="flex flex-col gap-2">
+              <legend className={labelText}>Sections to show</legend>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {SECTION_KEYS.map((key) => (
+                  <label key={key} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={draft.sections[key]}
+                      onChange={(e) => set("sections", { ...draft.sections, [key]: e.target.checked })}
+                      className="size-4 accent-accent"
+                    />
+                    {SECTION_LABELS[key]}
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-muted">In Pixel, Earlier work is called Side quests and Stack is called Inventory.</p>
+            </fieldset>
+          </Card>
 
-      <Card title="About you">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Text label="Name" value={draft.profile.name} max={60} onChange={(v) => setProfile("name", v)} />
-          <Text label="Role" value={draft.profile.role} max={60} onChange={(v) => setProfile("role", v)} />
+          <Card title="Pixel design text">
+            <Text label="Greeting" value={draft.pixel.greeting} max={60} onChange={(v) => setPixel("greeting", v)} />
+            <Area label="Intro" rows={3} value={draft.pixel.intro} max={300} onChange={(v) => setPixel("intro", v)} />
+            <Text label="LED ticker" value={draft.pixel.ticker} max={160} onChange={(v) => setPixel("ticker", v)} />
+          </Card>
+
+          <Card title="Links" hint="Shown as buttons under the intro. Use https:// links, mailto: or /resume.">
+            <ListEditor
+              items={draft.links}
+              max={8}
+              noun="link"
+              blank={() => ({ label: "", href: "https://" })}
+              summary={(l) => l.label || "New link"}
+              onChange={(items) => set("links", items)}
+              render={(l, patch) => (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Text label="Label" value={l.label} max={30} onChange={(v) => patch({ label: v })} />
+                  <Text label="Link" value={l.href} max={500} onChange={(v) => patch({ href: v })} />
+                </div>
+              )}
+            />
+          </Card>
+
+          <ResumeCard
+            resume={saved.resume}
+            rev={saved.rev}
+            blobReady={props.blobReady}
+            busy={pending}
+            onResult={(result, okText) => apply(result, okText, true)}
+            ensureUnlocked={ensureUnlocked}
+            onRemove={() => {
+              if (!window.confirm("Remove the résumé? /resume will show a “coming soon” note until you upload a new one.")) return;
+              startTransition(async () => {
+                const result = await runChange(() => removeResume(saved.rev));
+                if (result) apply(result, "Résumé removed.", true);
+                else notSaved();
+              });
+            }}
+          />
+
         </div>
-        <Area label="Headline (Notebook)" rows={2} value={draft.profile.headline} max={160} onChange={(v) => setProfile("headline", v)} />
-        <Area label="Intro (Notebook)" rows={3} value={draft.profile.intro} max={400} onChange={(v) => setProfile("intro", v)} />
-        <Text
-          label="Now line (Notebook)"
-          hint="Project names in this line link to the projects section."
-          value={draft.profile.now}
-          max={120}
-          onChange={(v) => setProfile("now", v)}
-        />
-        <Area
-          label="About"
-          hint="Leave a blank line between paragraphs."
-          rows={6}
-          value={draft.profile.about}
-          max={1200}
-          onChange={(v) => setProfile("about", v)}
-        />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Text label="Email" type="email" value={draft.profile.email} max={120} onChange={(v) => setProfile("email", v)} />
-        </div>
-        <Area
-          label="Say hi text"
-          hint="In Pixel, the first sentence is shown large."
-          rows={2}
-          value={draft.profile.contactLine}
-          max={200}
-          onChange={(v) => setProfile("contactLine", v)}
-        />
-      </Card>
-
-      <Card title="Pixel design text">
-        <Text label="Greeting" value={draft.pixel.greeting} max={60} onChange={(v) => setPixel("greeting", v)} />
-        <Area label="Intro" rows={3} value={draft.pixel.intro} max={300} onChange={(v) => setPixel("intro", v)} />
-        <Text label="LED ticker" value={draft.pixel.ticker} max={160} onChange={(v) => setPixel("ticker", v)} />
-      </Card>
-
-      <Card title="Links" hint="Shown as buttons under the intro. Use https:// links, mailto: or /resume.">
-        <ListEditor
-          items={draft.links}
-          max={8}
-          noun="link"
-          blank={() => ({ label: "", href: "https://" })}
-          summary={(l) => l.label || "New link"}
-          onChange={(items) => set("links", items)}
-          render={(l, patch) => (
+        <div className="flex flex-col gap-6">
+          <Card title="About you">
             <div className="grid gap-4 sm:grid-cols-2">
-              <Text label="Label" value={l.label} max={30} onChange={(v) => patch({ label: v })} />
-              <Text label="Link" value={l.href} max={500} onChange={(v) => patch({ href: v })} />
+              <Text label="Name" value={draft.profile.name} max={60} onChange={(v) => setProfile("name", v)} />
+              <Text label="Role" value={draft.profile.role} max={60} onChange={(v) => setProfile("role", v)} />
             </div>
-          )}
-        />
-      </Card>
-
-      <Card title="Projects">
-        <ListEditor
-          items={draft.projects}
-          max={6}
-          noun="project"
-          blank={() => ({
-            name: "",
-            tag: "",
-            one: "",
-            stack: [],
-            status: "Live",
-            liveHref: "",
-            codeHref: "",
-            imageKey: "none" as const,
-            brand: "#4f46e5",
-            bezel: "#18181b",
-          })}
-          summary={(p) => p.name || "New project"}
-          onChange={(items) => set("projects", items)}
-          render={(p, patch) => (
-            <>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Text label="Name" value={p.name} max={40} onChange={(v) => patch({ name: v })} />
-                <Text label="Status (Pixel badge)" value={p.status} max={16} onChange={(v) => patch({ status: v })} />
-              </div>
-              <Text label="Tagline" value={p.tag} max={80} onChange={(v) => patch({ tag: v })} />
-              <Area label="One-line description" rows={2} value={p.one} max={400} onChange={(v) => patch({ one: v })} />
-              <ListInput label="Stack" hint="Separate with commas." value={p.stack} onChange={(v) => patch({ stack: v })} />
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Text label="Live link" value={p.liveHref} max={500} onChange={(v) => patch({ liveHref: v })} />
-                <Text label="Source link" value={p.codeHref} max={500} onChange={(v) => patch({ codeHref: v })} />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <label className="flex flex-col gap-1.5">
-                  <span className={labelText}>Picture</span>
-                  <select
-                    value={p.imageKey}
-                    onChange={(e) => patch({ imageKey: e.target.value as ImageKey })}
-                    className={inputClass}
-                  >
-                    {IMAGE_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <ColorInput label="Brand colour" value={p.brand} onChange={(v) => patch({ brand: v })} />
-                <ColorInput label="Phone frame colour" value={p.bezel} onChange={(v) => patch({ bezel: v })} />
-              </div>
-            </>
-          )}
-        />
-      </Card>
-
-      <Card title="Earlier work">
-        <ListEditor
-          items={draft.earlier}
-          max={10}
-          noun="item"
-          blank={() => ({ name: "", what: "", meta: "", href: "" })}
-          summary={(e) => e.name || "New item"}
-          onChange={(items) => set("earlier", items)}
-          render={(e, patch) => (
-            <>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Text label="Name" value={e.name} max={60} onChange={(v) => patch({ name: v })} />
-                <Text label="Small note" hint="Shown on the right, e.g. Freelance." value={e.meta} max={40} onChange={(v) => patch({ meta: v })} />
-              </div>
-              <Text label="What it is" value={e.what} max={200} onChange={(v) => patch({ what: v })} />
-              <Text label="Link (optional)" value={e.href} max={500} onChange={(v) => patch({ href: v })} />
-            </>
-          )}
-        />
-      </Card>
-
-      <Card title="Experience">
-        <ListEditor
-          items={draft.experience}
-          max={10}
-          noun="role"
-          blank={() => ({ org: "", role: "", when: "", what: "" })}
-          summary={(x) => x.org || "New role"}
-          onChange={(items) => set("experience", items)}
-          render={(x, patch) => (
-            <>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Text label="Company or school" value={x.org} max={60} onChange={(v) => patch({ org: v })} />
-                <Text label="Role" value={x.role} max={80} onChange={(v) => patch({ role: v })} />
-              </div>
-              <Text label="When" hint="For example: Mar 2024 – now" value={x.when} max={40} onChange={(v) => patch({ when: v })} />
-              <Area label="One line on the work (optional)" rows={2} value={x.what} max={300} onChange={(v) => patch({ what: v })} />
-            </>
-          )}
-        />
-      </Card>
-
-      <Card title="Stack">
-        <ListEditor
-          items={draft.stack}
-          max={8}
-          noun="row"
-          blank={() => ({ k: "", v: "" })}
-          summary={(r) => r.k || "New row"}
-          onChange={(items) => set("stack", items)}
-          render={(r, patch) => (
-            <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
-              <Text label="Group" value={r.k} max={20} onChange={(v) => patch({ k: v })} />
-              <Text label="Tools" value={r.v} max={160} onChange={(v) => patch({ v })} />
+            <Area label="Headline (Notebook)" rows={2} value={draft.profile.headline} max={160} onChange={(v) => setProfile("headline", v)} />
+            <Area label="Intro (Notebook)" rows={3} value={draft.profile.intro} max={400} onChange={(v) => setProfile("intro", v)} />
+            <Text
+              label="Now line (Notebook)"
+              hint="Project names in this line link to the projects section."
+              value={draft.profile.now}
+              max={120}
+              onChange={(v) => setProfile("now", v)}
+            />
+            <Area
+              label="About"
+              hint="Leave a blank line between paragraphs."
+              rows={6}
+              value={draft.profile.about}
+              max={1200}
+              onChange={(v) => setProfile("about", v)}
+            />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Text label="Email" type="email" value={draft.profile.email} max={120} onChange={(v) => setProfile("email", v)} />
             </div>
-          )}
-        />
-      </Card>
+            <Area
+              label="Say hi text"
+              hint="In Pixel, the first sentence is shown large."
+              rows={2}
+              value={draft.profile.contactLine}
+              max={200}
+              onChange={(v) => setProfile("contactLine", v)}
+            />
+          </Card>
 
-      <ResumeCard
-        resume={saved.resume}
-        rev={saved.rev}
-        blobReady={props.blobReady}
-        busy={pending}
-        onResult={(result, okText) => apply(result, okText, true)}
-        ensureUnlocked={ensureUnlocked}
-        onRemove={() => {
-          if (!window.confirm("Remove the résumé? /resume will show a “coming soon” note until you upload a new one.")) return;
-          startTransition(async () => {
-            const result = await runChange(() => removeResume(saved.rev));
-            if (result) apply(result, "Résumé removed.", true);
-            else notSaved();
-          });
-        }}
-      />
+          <Card title="Projects">
+            <ListEditor
+              items={draft.projects}
+              max={6}
+              noun="project"
+              blank={() => ({
+                name: "",
+                tag: "",
+                one: "",
+                stack: [],
+                status: "Live",
+                liveHref: "",
+                codeHref: "",
+                imageKey: "none" as const,
+                brand: "#4f46e5",
+                bezel: "#18181b",
+              })}
+              summary={(p) => p.name || "New project"}
+              onChange={(items) => set("projects", items)}
+              render={(p, patch) => (
+                <>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Text label="Name" value={p.name} max={40} onChange={(v) => patch({ name: v })} />
+                    <Text label="Status (Pixel badge)" value={p.status} max={16} onChange={(v) => patch({ status: v })} />
+                  </div>
+                  <Text label="Tagline" value={p.tag} max={80} onChange={(v) => patch({ tag: v })} />
+                  <Area label="One-line description" rows={2} value={p.one} max={400} onChange={(v) => patch({ one: v })} />
+                  <ListInput label="Stack" hint="Separate with commas." value={p.stack} onChange={(v) => patch({ stack: v })} />
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Text label="Live link" value={p.liveHref} max={500} onChange={(v) => patch({ liveHref: v })} />
+                    <Text label="Source link" value={p.codeHref} max={500} onChange={(v) => patch({ codeHref: v })} />
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <label className="flex flex-col gap-1.5">
+                      <span className={labelText}>Picture</span>
+                      <select
+                        value={p.imageKey}
+                        onChange={(e) => patch({ imageKey: e.target.value as ImageKey })}
+                        className={inputClass}
+                      >
+                        {IMAGE_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <ColorInput label="Brand colour" value={p.brand} onChange={(v) => patch({ brand: v })} />
+                    <ColorInput label="Phone frame colour" value={p.bezel} onChange={(v) => patch({ bezel: v })} />
+                  </div>
+                </>
+              )}
+            />
+          </Card>
+
+          <Card title="Earlier work">
+            <ListEditor
+              items={draft.earlier}
+              max={10}
+              noun="item"
+              blank={() => ({ name: "", what: "", meta: "", href: "" })}
+              summary={(e) => e.name || "New item"}
+              onChange={(items) => set("earlier", items)}
+              render={(e, patch) => (
+                <>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Text label="Name" value={e.name} max={60} onChange={(v) => patch({ name: v })} />
+                    <Text label="Small note" hint="Shown on the right, e.g. Freelance." value={e.meta} max={40} onChange={(v) => patch({ meta: v })} />
+                  </div>
+                  <Text label="What it is" value={e.what} max={200} onChange={(v) => patch({ what: v })} />
+                  <Text label="Link (optional)" value={e.href} max={500} onChange={(v) => patch({ href: v })} />
+                </>
+              )}
+            />
+          </Card>
+
+          <Card title="Experience">
+            <ListEditor
+              items={draft.experience}
+              max={10}
+              noun="role"
+              blank={() => ({ org: "", role: "", when: "", what: "" })}
+              summary={(x) => x.org || "New role"}
+              onChange={(items) => set("experience", items)}
+              render={(x, patch) => (
+                <>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Text label="Company or school" value={x.org} max={60} onChange={(v) => patch({ org: v })} />
+                    <Text label="Role" value={x.role} max={80} onChange={(v) => patch({ role: v })} />
+                  </div>
+                  <Text label="When" hint="For example: Mar 2024 – now" value={x.when} max={40} onChange={(v) => patch({ when: v })} />
+                  <Area label="One line on the work (optional)" rows={2} value={x.what} max={300} onChange={(v) => patch({ what: v })} />
+                </>
+              )}
+            />
+          </Card>
+
+          <Card title="Stack">
+            <ListEditor
+              items={draft.stack}
+              max={8}
+              noun="row"
+              blank={() => ({ k: "", v: "" })}
+              summary={(r) => r.k || "New row"}
+              onChange={(items) => set("stack", items)}
+              render={(r, patch) => (
+                <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
+                  <Text label="Group" value={r.k} max={20} onChange={(v) => patch({ k: v })} />
+                  <Text label="Tools" value={r.v} max={160} onChange={(v) => patch({ v })} />
+                </div>
+              )}
+            />
+          </Card>
+
+        </div>
+      </div>
 
       <SavePasswordDialog
         open={askingPassword}
@@ -453,7 +472,7 @@ export function AdminPanel(props: {
       />
 
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-bg/95 backdrop-blur">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
           <div className="min-w-0 basis-full text-sm sm:basis-auto sm:flex-1" aria-live="polite">
             {status ? (
               <div className={status.kind === "error" ? "text-danger" : "text-fg"}>
@@ -479,6 +498,14 @@ export function AdminPanel(props: {
             <button type="button" onClick={undo} disabled={pending || !canUndo} className={ghostButton}>
               Undo last save
             </button>
+            <a
+              href="/admin/preview"
+              target="hs-preview"
+              title="Opens a tab that shows your edits live, before you save"
+              className={ghostButton}
+            >
+              Preview ↗
+            </a>
             <button
               type="button"
               onClick={save}
@@ -678,20 +705,24 @@ function SavePasswordDialog({ open, onDone }: { open: boolean; onDone: (unlocked
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
+  const [shake, setShake] = useState(0);
   if (!open) return null;
 
-  const close = (unlocked: boolean) => {
+  const close = (ok: boolean) => {
     setPassword("");
     setError(null);
-    onDone(unlocked);
+    setUnlocked(false);
+    onDone(ok);
   };
+  const status: PasswordStatus = busy ? "checking" : unlocked ? "ok" : error ? "error" : "idle";
 
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="save-password-title"
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 backdrop-blur-sm sm:items-center"
       onKeyDown={(e) => {
         if (e.key === "Escape" && !busy) close(false);
       }}
@@ -699,45 +730,57 @@ function SavePasswordDialog({ open, onDone }: { open: boolean; onDone: (unlocked
       <form
         onSubmit={async (e) => {
           e.preventDefault();
+          if (!password) return;
           setBusy(true);
           setError(null);
           const result = await unlockSaving(password);
           setBusy(false);
-          if (result.ok) close(true);
-          else setError(result.error);
+          if (result.ok) {
+            setUnlocked(true);
+            setTimeout(() => close(true), 350);
+          } else {
+            setError(result.error);
+            setPassword("");
+            setShake((n) => n + 1);
+          }
         }}
-        className="flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-line bg-surface p-5 shadow-xl"
+        className="flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-line bg-surface p-5 shadow-2xl"
       >
-        <h2 id="save-password-title" className="text-base font-semibold">
+        <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-muted">
+          <span className="pp-light" data-status={status} aria-hidden="true" />
+          Saving · {unlocked ? "unlocked" : "locked"}
+        </p>
+        <h2 id="save-password-title" className="text-lg font-semibold tracking-tight">
           Save password
         </h2>
-        <p className="text-sm text-muted">
-          Changes to the site need the second password. After this, saving stays unlocked for 15 minutes.
-        </p>
-        <input
-          type="password"
+        <p className="text-sm text-muted">Changes to the site need the second password. Saving then stays unlocked for 15 minutes.</p>
+        <PixelPassword
+          label="Save password"
+          value={password}
+          onChange={(v) => {
+            setPassword(v);
+            setError(null);
+          }}
+          status={status}
           autoFocus
           autoComplete="off"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          aria-label="Save password"
-          className={inputClass}
+          shakeKey={shake}
         />
         {error && (
-          <p role="alert" className="text-sm text-danger">
+          <p role="alert" className="font-mono text-xs text-danger">
             {error}
           </p>
         )}
-        <div className="flex justify-end gap-2">
+        <div className="mt-1 flex justify-end gap-2">
           <button type="button" onClick={() => close(false)} disabled={busy} className={ghostButton}>
             Cancel
           </button>
           <button
             type="submit"
             disabled={busy || password.length === 0}
-            className="h-10 rounded-xl bg-btn px-4 font-medium text-btn-fg disabled:opacity-50"
+            className="h-10 rounded-xl bg-btn px-4 font-mono text-xs uppercase tracking-[0.14em] text-btn-fg disabled:opacity-40"
           >
-            {busy ? "Checking…" : "Unlock"}
+            {busy ? "Verifying" : "Unlock →"}
           </button>
         </div>
       </form>
