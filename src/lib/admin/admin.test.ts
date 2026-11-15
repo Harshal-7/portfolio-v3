@@ -2,19 +2,31 @@ import { describe, expect, it } from "vitest";
 
 import { hashPassword as hashFromScript } from "../../../scripts/admin-hash.mjs";
 import { hashPassword, verifyPassword } from "./password";
-import { isAdminShortcut } from "../site/shortcut";
+import { createAdminShortcut } from "../site/shortcut";
 import { newSessionId, signSession, verifySessionToken } from "./token";
 
 describe("admin shortcut", () => {
-  const key = (over: Partial<KeyboardEvent>) =>
-    ({ ctrlKey: false, metaKey: false, altKey: false, shiftKey: false, code: "KeyH", ...over }) as KeyboardEvent;
+  const key = (over: Partial<KeyboardEvent> = {}) =>
+    ({ ctrlKey: false, metaKey: false, altKey: false, shiftKey: false, repeat: false, code: "KeyH", ...over }) as KeyboardEvent;
 
-  it("opens on Ctrl + H only", () => {
-    expect(isAdminShortcut(key({ ctrlKey: true }))).toBe(true);
-    expect(isAdminShortcut(key({}))).toBe(false);
-    expect(isAdminShortcut(key({ metaKey: true }))).toBe(false);
-    expect(isAdminShortcut(key({ ctrlKey: true, shiftKey: true }))).toBe(false);
-    expect(isAdminShortcut(key({ ctrlKey: true, code: "KeyJ" }))).toBe(false);
+  it("opens on H pressed twice within half a second", () => {
+    const press = createAdminShortcut();
+    expect(press(key(), 1000)).toBe(false);
+    expect(press(key(), 1300)).toBe(true);
+    // A third press starts over.
+    expect(press(key(), 1400)).toBe(false);
+  });
+
+  it("ignores slow presses, modifiers, held keys and other keys in between", () => {
+    const press = createAdminShortcut();
+    expect(press(key(), 0)).toBe(false);
+    expect(press(key(), 900)).toBe(false);
+    expect(press(key({ metaKey: true }), 1000)).toBe(false);
+    expect(press(key(), 1100)).toBe(false);
+    expect(press(key({ repeat: true }), 1150)).toBe(false);
+    expect(press(key({ code: "KeyJ" }), 1200)).toBe(false);
+    expect(press(key(), 1300)).toBe(false);
+    expect(press(key({ ctrlKey: true }), 1350)).toBe(false);
   });
 });
 

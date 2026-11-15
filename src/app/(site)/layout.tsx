@@ -4,7 +4,7 @@ import { AdminShortcut } from "@/designs/shared/admin-shortcut";
 
 /**
  * Public pages. Vercel Web Analytics is cookieless and only loads here, so admin
- * visits are never counted. Ctrl + H jumps to the admin sign-in.
+ * visits are never counted. Pressing H twice quickly opens the admin sign-in.
  */
 export default function SiteLayout({ children }: LayoutProps<"/">) {
   return (

@@ -7,7 +7,7 @@ There are two designs, and the site shows one at a time:
 - **Notebook**: Fraunces headings with Inter body text, the Indigo palette, a paper-grain background, a pull-cord light bulb for light/dark, and large project tiles.
 - **Pixel**: Pixelify Sans headings with Geist body text, the same Indigo palette, twinkling pixel sparkles, an LED ticker, and a bulb that bursts into pixels.
 
-The admin page at `/admin` (or press Ctrl + H on the site) switches the design, sets the default light/dark mode, shows or hides sections, edits the text and uploads a new résumé. It takes two passwords: one to sign in, and a second one before any change is saved. The second one keeps saving unlocked for 15 minutes.
+The admin page at `/admin` (or press H twice quickly on the site) switches the design, sets the default light/dark mode, shows or hides sections, edits the text and uploads a new résumé. It takes two passwords: one to sign in, and a second one before any change is saved. The second one keeps saving unlocked for 15 minutes.
 
 ## Stack
 
