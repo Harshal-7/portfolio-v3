@@ -137,5 +137,12 @@ export const defaultSite: SiteDoc = {
       "I build full-stack and AI apps, and I write about what breaks along the way. Next.js up front, FastAPI behind it, AI where it earns its place.",
     ticker: "HELLO, VISITOR /// PRESS THE BULB /// SHIP IT! /// MADE IN INDIA /// EVALS: 26/26 /// HUH?",
   },
-  resume: null,
+  // The private Blob file uploaded on 2026-11-15. Its URL needs the site's
+  // credentials to read, so it's safe in code; /resume serves it.
+  resume: {
+    url: "https://atjoii4mk7ostpty.private.blob.vercel-storage.com/resume/Harshal_Shinde_CV-7a576c97.pdf",
+    pathname: "resume/Harshal_Shinde_CV-7a576c97.pdf",
+    size: 91255,
+    uploadedAt: "2026-11-15T15:49:54.000Z",
+  },
 };

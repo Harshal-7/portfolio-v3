@@ -283,12 +283,7 @@ html[data-mode="dark"] .px-site .px-pop {
   box-shadow:
     var(--px-frame),
     9px 9px 0 0 var(--accent-soft);
-  transition:
-    transform 0.14s steps(2),
-    background-color 0.4s ease;
-}
-.px-site .px-card:hover {
-  transform: translate(-3px, -3px);
+  transition: background-color 0.4s ease;
 }
 .px-media {
   position: relative;

@@ -20,7 +20,8 @@ export async function GET() {
     console.error("[resume] couldn't read the site document", error);
   }
 
-  const url = doc?.resume?.url;
+  // Before the first admin save the store is empty, so use the default resume.
+  const url = (doc ?? defaultSite).resume?.url;
   const access = url ? ownBlobAccess(url) : null;
 
   if (url && access === "public") {
