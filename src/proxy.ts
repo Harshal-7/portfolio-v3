@@ -25,9 +25,10 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Everything except the home page, build assets and static files. The home page
-  // is never touched, so it stays a plain cached page.
+  // Everything except the home page, build assets, Vercel's own /_vercel routes
+  // (analytics) and static files. The home page is never touched, so it stays a
+  // plain cached page.
   matcher: [
-    "/((?!_next/static|_next/image|index\\.(?:rsc|segments)|favicon\\.ico|robots\\.txt|sitemap\\.xml|.*\\.(?:svg|png|jpg|jpeg|webp|ico|woff|woff2)$).+)",
+    "/((?!_next/static|_next/image|_vercel|index\\.(?:rsc|segments)|favicon\\.ico|robots\\.txt|sitemap\\.xml|.*\\.(?:svg|png|jpg|jpeg|webp|ico|woff|woff2)$).+)",
   ],
 };
