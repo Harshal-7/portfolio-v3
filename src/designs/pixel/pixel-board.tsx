@@ -86,7 +86,7 @@ export function PixelBoard({ text }: { text: string }) {
   const offset = Math.floor((viewCols - width) / 2);
 
   return (
-    <div ref={box} className="pb-board" role="marquee" aria-label={lines.join(". ")}>
+    <div ref={box} className="pb-board" role="marquee" aria-label={lines.map((l) => (/[.!?]$/.test(l) ? l : `${l}.`)).join(" ")}>
       <svg className="pb-svg" viewBox={`0 0 ${viewCols} ${ROWS}`} preserveAspectRatio="xMidYMid meet" shapeRendering="crispEdges" aria-hidden="true">
         <defs>
           <pattern id="pb-off" width="1" height="1" patternUnits="userSpaceOnUse">

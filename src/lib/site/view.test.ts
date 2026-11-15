@@ -50,7 +50,7 @@ describe("splitTicker", () => {
       "FULL-STACK AND AI",
       "BASED IN INDIA",
     ]);
-    expect(splitTicker(defaultSite.pixel.ticker)).toHaveLength(6);
+    expect(splitTicker(defaultSite.pixel.ticker)).toHaveLength(7);
     expect(splitTicker("Just one thing")).toEqual(["Just one thing"]);
     expect(splitTicker("   ")).toEqual([]);
   });
