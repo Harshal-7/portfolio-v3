@@ -53,6 +53,7 @@ describe("proxy matcher", () => {
     expect(matches("/projects/evenor-trip.jpg")).toBe(false);
     expect(matches("/grain.png")).toBe(false);
     expect(matches("/robots.txt")).toBe(false);
+    expect(matches("/_vercel/insights/script.js")).toBe(false);
   });
 });
 
