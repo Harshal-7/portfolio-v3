@@ -50,7 +50,6 @@ export const projectSchema = z.object({
   one: text(400),
   stack: z.array(required(30)).max(8),
   status: text(16),
-  liveLabel: text(40),
   liveHref: optionalHref,
   codeHref: optionalHref,
   imageKey: z.enum(IMAGE_KEYS),
@@ -134,4 +133,10 @@ export type Resume = z.infer<typeof resumeSchema>;
 export function contentOf(doc: SiteDoc): SiteContent {
   const { rev: _rev, updatedAt: _updatedAt, resume: _resume, ...content } = doc;
   return content;
+}
+
+/** "projects › #1 › liveHref: Use an https:// link…" for error lists in the admin page. */
+export function issueText(issue: { path: PropertyKey[]; message: string }): string {
+  const path = issue.path.map((p) => (typeof p === "number" ? `#${p + 1}` : String(p))).join(" › ");
+  return path ? `${path}: ${issue.message}` : issue.message;
 }

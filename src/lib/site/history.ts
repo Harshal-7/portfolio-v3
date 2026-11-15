@@ -18,15 +18,20 @@ export function currentRev(state: StoreState): number {
  * Saves `next` if nobody saved since `expectedRev` was read. The old document moves
  * into history; whatever falls off the end of history comes back as `dropped`, so
  * the caller can delete files that no version points to any more.
+ *
+ * `seed` is what the site showed before the very first save (the built-in
+ * defaults), so that first save can be undone too.
  */
 export function applyWrite(
   state: StoreState,
   next: SiteDoc,
   expectedRev: number,
+  seed?: SiteDoc,
 ): { state: StoreState; result: WriteResult } {
   if (currentRev(state) !== expectedRev) return { state, result: { ok: false, reason: "conflict" } };
   if (next.rev !== expectedRev + 1) throw new Error(`next.rev must be ${expectedRev + 1}`);
-  const pushed = state.doc ? [state.doc, ...state.history] : state.history;
+  const previous = state.doc ?? seed;
+  const pushed = previous ? [previous, ...state.history] : state.history;
   return {
     state: { doc: next, history: pushed.slice(0, HISTORY_LIMIT) },
     result: { ok: true, doc: next, dropped: pushed.slice(HISTORY_LIMIT) },

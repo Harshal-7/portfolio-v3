@@ -17,6 +17,11 @@ describe("applyWrite", () => {
     expect(state).toEqual({ doc: doc(1), history: [] });
   });
 
+  it("keeps the defaults as the first undo step when given a seed", () => {
+    const { state } = applyWrite({ doc: null, history: [] }, doc(1), 0, doc(0));
+    expect(state.history.map((d) => d.rev)).toEqual([0]);
+  });
+
   it("refuses a stale rev, so two tabs can't overwrite each other", () => {
     const start: StoreState = { doc: doc(3), history: [] };
     const { state, result } = applyWrite(start, doc(3), 2);

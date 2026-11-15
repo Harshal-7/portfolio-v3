@@ -15,7 +15,8 @@ export interface SiteStore {
   read(): Promise<SiteDoc | null>;
   /** The saved document and every earlier version Undo can reach. */
   readAll(): Promise<StoreState>;
-  write(next: SiteDoc, expectedRev: number): Promise<WriteResult>;
+  /** `seed`: what the site showed before the first save, kept so that save can be undone. */
+  write(next: SiteDoc, expectedRev: number, seed?: SiteDoc): Promise<WriteResult>;
   undo(expectedRev: number, now: string): Promise<WriteResult>;
 }
 
@@ -55,6 +56,7 @@ const WRITE_SCRIPT = `
 local cur = tonumber(redis.call('GET', KEYS[3]) or '0')
 if cur ~= tonumber(ARGV[1]) then return {0} end
 local old = redis.call('GET', KEYS[1])
+if not old and ARGV[4] ~= '' then old = ARGV[4] end
 local dropped = {}
 if old then
   local limit = tonumber(ARGV[3])
@@ -103,11 +105,11 @@ function redisStore(): SiteStore {
       ]);
       return { doc: raw == null ? null : parseDoc(raw), history: parseHistory(history) };
     },
-    async write(next, expectedRev) {
+    async write(next, expectedRev, seed) {
       const raw = await redis.eval(
         WRITE_SCRIPT,
         [KEY_DOC, KEY_HISTORY, KEY_REV],
-        [String(expectedRev), JSON.stringify(next), String(HISTORY_LIMIT)],
+        [String(expectedRev), JSON.stringify(next), String(HISTORY_LIMIT), seed ? JSON.stringify(seed) : ""],
       );
       return scriptResult(raw, next);
     },
@@ -165,7 +167,7 @@ function fileStore(): SiteStore {
   return {
     read: async () => (await loadFile()).doc,
     readAll: loadFile,
-    write: (next, expectedRev) => mutate((s) => applyWrite(s, next, expectedRev)),
+    write: (next, expectedRev, seed) => mutate((s) => applyWrite(s, next, expectedRev, seed)),
     undo: (expectedRev, now) => mutate((s) => applyUndo(s, expectedRev, now)),
   };
 }
