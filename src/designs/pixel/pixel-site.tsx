@@ -4,6 +4,7 @@ import type { SiteDoc } from "@/lib/site/schema";
 import { splitLead, visibleSections } from "@/lib/site/view";
 
 import { footerText, Paragraphs, ProjectMedia, type Labels } from "../shared/parts";
+import { PixelBoard } from "./pixel-board";
 import { PixelBulb } from "./pixel-bulb";
 
 import "./pixel.css";
@@ -112,10 +113,13 @@ export function PixelSite({ site }: { site: SiteDoc }) {
         <PixelBulb />
 
         <header className="px-header">
-          <span aria-hidden="true" className="px-badge">
-            HS
-          </span>
-          <span className="px-name">{profile.name}</span>
+          <a href="#top" className="px-wordmark" aria-label={`huhharshal, ${profile.name}`}>
+            <span aria-hidden="true">
+              <span className="px-huh">huh</span>
+              <span className="px-wm-dot">·</span>harshal
+              <span className="px-wm-cursor" />
+            </span>
+          </a>
         </header>
 
         <main>
@@ -126,14 +130,7 @@ export function PixelSite({ site }: { site: SiteDoc }) {
               </span>
             </h1>
             {pixel.intro && <p className="px-lede">{pixel.intro}</p>}
-            {pixel.ticker && (
-              <div className="px-ticker" role="marquee" aria-label={pixel.ticker}>
-                <div className="px-marquee" aria-hidden="true">
-                  <span>{pixel.ticker}</span>
-                  <span>{pixel.ticker}</span>
-                </div>
-              </div>
-            )}
+            {pixel.ticker && <PixelBoard text={pixel.ticker} />}
             {site.links.length > 0 && (
               <nav aria-label="Links" className="px-keys">
                 {site.links.map((l, i) => (

@@ -271,7 +271,7 @@ export function AdminPanel(props: {
           <Card title="Pixel design text">
             <Text label="Greeting" value={draft.pixel.greeting} max={60} onChange={(v) => setPixel("greeting", v)} />
             <Area label="Intro" rows={3} value={draft.pixel.intro} max={300} onChange={(v) => setPixel("intro", v)} />
-            <Text label="LED ticker" value={draft.pixel.ticker} max={160} onChange={(v) => setPixel("ticker", v)} />
+            <Text label="Now-building board" hint="Separate lines with ///. Letters, numbers and + - / . , ! ? & ' : ( ) show; anything else becomes a space." value={draft.pixel.ticker} max={160} onChange={(v) => setPixel("ticker", v)} />
           </Card>
 
           <Card title="Links" hint="Shown as buttons under the intro. Use https:// links, mailto: or /resume.">
