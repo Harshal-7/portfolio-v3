@@ -52,21 +52,44 @@ export function findLink(links: SiteLink[], host: string): SiteLink | undefined 
   });
 }
 
-export const PROJECT_IMAGES = {
+/**
+ * Looping demo clips for the project cards. "framed" clips already include the
+ * phone outline; the others get one from CSS.
+ */
+export const PROJECT_MEDIA = {
   evenor: {
-    kind: "phones",
-    front: { src: "/projects/evenor-trip.jpg", alt: "Evenor trip screen for an Alibaug weekend, showing who owes whom" },
-    back: { src: "/projects/evenor-add.jpg", alt: "Evenor add-expense sheet with a box to type the bill" },
-    width: 390,
-    height: 864,
+    framed: true,
+    mp4: "/projects/evenor-demo.mp4",
+    webm: "/projects/evenor-demo.webm",
+    poster: "/projects/evenor-demo.jpg",
+    width: 360,
+    height: 772,
+    label: "Evenor: typing a bill, splitting it with the group, then settling up over UPI",
   },
   "life-vault": {
-    kind: "shot",
-    front: {
-      src: "/projects/lifevault-card.jpg",
-      alt: "Life Vault answering “When does my fridge warranty end?” with the date and its source document",
-    },
-    width: 640,
-    height: 480,
+    framed: false,
+    mp4: "/projects/lifevault-demo.mp4",
+    webm: "/projects/lifevault-demo.webm",
+    poster: "/projects/lifevault-demo.jpg",
+    width: 360,
+    height: 780,
+    label: "Life Vault: asking when the fridge warranty ends, then the timeline of upcoming renewals and reminders",
   },
 } as const;
+
+/** "A /// B /// C ///" → ["A", "B", "C"]: the ticker's separate phrases. */
+export function splitTicker(text: string): string[] {
+  const parts = text
+    .split(/\/{2,}|\s[•|·]\s/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  return parts.length ? parts : [text.trim()].filter(Boolean);
+}
+
+/**
+ * External links and the resume open in a new tab, so the portfolio stays open.
+ * In-page anchors and mailto: links open as usual.
+ */
+export function newTab(href: string): { target?: "_blank"; rel?: string } {
+  return href.startsWith("https://") || href === "/resume" ? { target: "_blank", rel: "noopener noreferrer" } : {};
+}

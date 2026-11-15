@@ -161,7 +161,12 @@ html[data-mode="dark"] .nb-noise {
   text-decoration: none;
   font-size: 14px;
 }
-.nb-pill span {
+.nb-pill-icon {
+  width: 15px;
+  height: 15px;
+  color: var(--muted);
+}
+.nb-pill-arrow {
   color: var(--muted);
 }
 
@@ -206,31 +211,25 @@ html[data-mode="dark"] .nb-noise {
   height: 270px;
   overflow: hidden;
 }
-.nb-phones {
+/* Demo clip in a phone, cut off by the bottom of the tile. */
+.nb-site .nb-clip {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 30px;
-  display: flex;
-  justify-content: center;
-  gap: 14px;
-}
-.nb-site .nb-phone {
+  top: 24px;
+  left: 50%;
   display: block;
-  width: 148px;
+  width: 176px;
   height: auto;
-  border-radius: 24px 24px 0 0;
-  border: 5px solid;
-  border-bottom: 0;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  transform: translateX(-50%);
   transition: none;
 }
-.nb-phone-back {
-  transform: translateY(28px);
+.nb-clip.is-framed {
+  border-radius: 24px;
 }
-.nb-shot {
-  object-fit: contain;
-  object-position: center;
+.nb-clip.is-bezel {
+  border: 5px solid;
+  border-bottom: 0;
+  border-radius: 26px 26px 0 0;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
 }
 .nb-tile-body {
   padding: 20px 22px 22px;
@@ -536,4 +535,94 @@ html:not([data-mode="dark"]) .nb-filament {
   border-radius: 5px;
   background: var(--accent);
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+/* The bulb sways when the pointer comes near, and nudges once after load. */
+.nb-site .nb-bulb-hang,
+.nb-site .nb-pull {
+  transform-origin: 50% 0;
+}
+.nb-bulb[data-near] .nb-bulb-hang {
+  animation: nbSway 1.8s ease-in-out infinite;
+}
+.nb-bulb[data-near] .nb-pull {
+  animation: nbSway 1.8s 0.15s ease-in-out infinite;
+}
+.nb-bulb[data-nudge] .nb-bulb-hang {
+  animation: nbSway 1.8s ease-in-out 1;
+}
+@keyframes nbSway {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  30% {
+    transform: rotate(6deg);
+  }
+  70% {
+    transform: rotate(-5deg);
+  }
+}
+
+/* Earlier work and experience: small hover touches. The arrows hop now and
+   then (staggered), and nudge towards the link on hover. */
+.nb-arrow {
+  display: inline-block;
+  margin-left: 4px;
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
+  animation: nbHop 7s ease-in-out infinite;
+}
+.nb-list > li:nth-child(2) .nb-arrow {
+  animation-delay: 1.4s;
+}
+.nb-list > li:nth-child(3) .nb-arrow {
+  animation-delay: 2.8s;
+}
+.nb-list > li:nth-child(4) .nb-arrow {
+  animation-delay: 4.2s;
+}
+.nb-list > li:nth-child(5) .nb-arrow {
+  animation-delay: 5.6s;
+}
+@keyframes nbHop {
+  0%,
+  88%,
+  100% {
+    transform: none;
+  }
+  92% {
+    transform: translate(2px, -2px);
+  }
+}
+.nb-site a.nb-earlier .nb-earlier-name {
+  background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+  transition: background-size 0.25s ease;
+}
+.nb-site a.nb-earlier:hover .nb-earlier-name {
+  background-size: 100% 1px;
+}
+.nb-site a.nb-earlier:hover .nb-arrow {
+  animation: none;
+  transform: translate(3px, -3px);
+  color: var(--link);
+}
+.nb-site .nb-exp {
+  position: relative;
+}
+.nb-exp::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 18px;
+  bottom: 18px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  transform: scaleY(0);
+  transition: transform 0.25s ease;
+}
+.nb-exp:hover::before {
+  transform: scaleY(1);
 }

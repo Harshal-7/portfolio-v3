@@ -1,5 +1,5 @@
 /**
- * Résumé storage on Vercel Blob. The store is private: files are only reachable
+ * Resume storage on Vercel Blob. The store is private: files are only reachable
  * with the site's credentials, so /resume reads the PDF and sends it itself.
  *
  * Connecting a private store to the project sets BLOB_STORE_ID and

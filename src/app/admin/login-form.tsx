@@ -3,10 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 
-import { login, type LoginState } from "./actions";
+import { devSignIn, login, type LoginState } from "./actions";
 import { PixelPassword, type PasswordStatus } from "./pixel-password";
 
-export function LoginForm({ problems }: { problems: string[] }) {
+export function LoginForm({ problems, localQuick }: { problems: string[]; localQuick?: boolean }) {
   const router = useRouter();
   const [state, action, pending] = useActionState<LoginState, FormData>(login, {});
   const [value, setValue] = useState("");
@@ -92,6 +92,22 @@ export function LoginForm({ problems }: { problems: string[] }) {
             <span aria-hidden="true">→</span>
           </button>
         </form>
+        {localQuick && (
+          <form
+            action={async () => {
+              const result = await devSignIn();
+              if (result.ok) router.refresh();
+            }}
+            className="mt-3"
+          >
+            <button
+              type="submit"
+              className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-line font-mono text-xs uppercase tracking-[0.14em] text-muted transition hover:border-accent hover:text-fg"
+            >
+              Sign in · local only
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
-import Image from "next/image";
-import type { ReactNode } from "react";
 
 import type { Project, SiteDoc } from "@/lib/site/schema";
-import { linkNames, monthYear, PROJECT_IMAGES, yearOf } from "@/lib/site/view";
+import { linkNames, monthYear, PROJECT_MEDIA, yearOf } from "@/lib/site/view";
+
+import { LoopVideo } from "./loop-video";
 
 /** Section headings each design uses. */
 export type Labels = {
@@ -48,63 +48,31 @@ export function Paragraphs({ text, className }: { text: string; className?: stri
   );
 }
 
-/** Phone screenshots or a single screenshot on the project's brand colour. */
+/** The project's looping demo clip in a phone, on its brand colour. */
 export function ProjectMedia({
   project,
   className,
-  phonesClass,
   phoneClass,
-  backClass,
-  shotClass,
-  phoneWidth,
 }: {
   project: Project;
   className: string;
-  phonesClass: string;
   phoneClass: string;
-  backClass: string;
-  shotClass: string;
-  phoneWidth: number;
 }) {
-  const media = project.imageKey === "none" ? null : PROJECT_IMAGES[project.imageKey];
-  let inner: ReactNode = null;
-  if (media?.kind === "phones") {
-    inner = (
-      <div className={phonesClass}>
-        <Image
-          src={media.back.src}
-          alt={media.back.alt}
-          width={media.width}
-          height={media.height}
-          sizes={`${phoneWidth}px`}
-          className={`${phoneClass} ${backClass}`}
-          style={{ borderColor: project.bezel }}
-        />
-        <Image
-          src={media.front.src}
-          alt={media.front.alt}
-          width={media.width}
-          height={media.height}
-          sizes={`${phoneWidth}px`}
-          className={phoneClass}
-          style={{ borderColor: project.bezel }}
-        />
-      </div>
-    );
-  } else if (media?.kind === "shot") {
-    inner = (
-      <Image
-        src={media.front.src}
-        alt={media.front.alt}
-        fill
-        sizes="(max-width: 760px) 100vw, 720px"
-        className={shotClass}
-      />
-    );
-  }
+  const media = project.imageKey === "none" ? null : PROJECT_MEDIA[project.imageKey];
   return (
     <div className={className} style={{ background: project.brand }}>
-      {inner}
+      {media && (
+        <LoopVideo
+          mp4={media.mp4}
+          webm={media.webm}
+          poster={media.poster}
+          label={media.label}
+          width={media.width}
+          height={media.height}
+          className={`${phoneClass} ${media.framed ? "is-framed" : "is-bezel"}`}
+          style={media.framed ? undefined : { borderColor: project.bezel }}
+        />
+      )}
     </div>
   );
 }

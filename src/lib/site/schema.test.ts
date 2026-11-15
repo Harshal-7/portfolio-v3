@@ -58,6 +58,12 @@ describe("site schema", () => {
     expect(parsed.resume).toBeUndefined();
   });
 
+  it("gives older saved content the default board timing", () => {
+    const { boardSeconds: _skip, ...pixel } = defaultSite.pixel;
+    expect(siteSchema.parse({ ...defaultSite, pixel }).pixel.boardSeconds).toBe(4);
+    expect(contentSchema.safeParse({ ...contentOf(defaultSite), pixel: { ...pixel, boardSeconds: 1 } }).success).toBe(false);
+  });
+
   it("trims text", () => {
     const input = structuredClone(contentOf(defaultSite));
     input.profile.name = "  Harshal Shinde  ";

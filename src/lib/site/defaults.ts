@@ -26,17 +26,17 @@ export const defaultSite: SiteDoc = {
       "Mostly Next.js up front and FastAPI behind it, with AI where it earns its place: reading receipts, answering questions about your own documents, turning a typed sentence into clean data.",
     now: "Now building Evenor and Life Vault.",
     about:
-      "I studied electronics and telecom, then moved into web development: a full-stack course, freelance client work, and a lot of side projects. These days I build products end to end, from the database to the interface, and I write evals so I know the AI parts actually work.",
+      "I studied electronics and telecom, then moved into web development. Over the last two years I’ve built production apps at Impelox, BCT Consulting and now QuickAds: payment integrations, ad-platform workflows and AI image pipelines. Outside work I build my own products end to end, from the database to the interface, and I write evals so I know the AI parts actually work.",
     email: "shindeharshal009@gmail.com",
     contactLine:
       "Building something, hiring, or just want to talk about AI apps? Email is the fastest way to reach me.",
   },
   links: [
+    { label: "Resume", href: "/resume" },
     { label: "Email", href: "mailto:shindeharshal009@gmail.com" },
     { label: "GitHub", href: "https://github.com/Harshal-7" },
     { label: "LinkedIn", href: "https://www.linkedin.com/in/harshal-shinde-77a862210" },
     { label: "X", href: "https://x.com/hscodez" },
-    { label: "Résumé", href: "/resume" },
   ],
   projects: [
     {
@@ -54,7 +54,7 @@ export const defaultSite: SiteDoc = {
     {
       name: "Life Vault",
       tag: "Ask your paperwork anything.",
-      one: "Bills, warranties, insurance and rent agreements in one place. Ask a question and get the answer with the exact line it came from.",
+      one: "Bills, warranties and agreements in one place. Ask anything, see the exact line it came from.",
       stack: ["Next.js", "FastAPI", "Redis worker", "Supabase + pgvector", "Gemini"],
       status: "Live",
       liveHref: "https://life-vault-seven.vercel.app",
@@ -65,6 +65,12 @@ export const defaultSite: SiteDoc = {
     },
   ],
   earlier: [
+    {
+      name: "RAG chatbot with a knowledge graph",
+      what: "Answers questions over a Neo4j knowledge graph and vector search, built with FastAPI, LangChain and Next.js",
+      meta: "Python, LangChain",
+      href: "",
+    },
     {
       name: "Vinox Technologies",
       what: "Product website for a client, with the catalog in MongoDB and images on Cloudinary",
@@ -91,26 +97,53 @@ export const defaultSite: SiteDoc = {
     },
   ],
   experience: [
-    { org: "QuickAds", role: "[Your role]", when: "[Start] – now", what: "[One line on what you build there]" },
     {
-      org: "Vinox Technologies",
-      role: "Freelance web developer",
-      when: "Mar 2024 – [End]",
-      what: "Designed, built and shipped the company’s product site with Next.js, MongoDB and Cloudinary.",
+      org: "QuickAds",
+      role: "Software Developer",
+      when: "Mar 2026 – now",
+      what: "Built an AI fashion photoshoot platform with FastAPI and Next.js, and own Catalog Ads: Meta Marketing API workflows, bulk uploads and Shopify billing.",
     },
-    { org: "MES College of Engineering", role: "B.E., Electronics and Telecommunication", when: "2019 – 2023", what: "" },
+    {
+      org: "BCT Consulting",
+      role: "Software Engineer",
+      when: "Dec 2025 – Mar 2026",
+      what: "Full-stack work on the AFL Salary Cap platform: Angular front ends and Node.js, Express and MongoDB services with role-based APIs.",
+    },
+    {
+      org: "Impelox Tech",
+      role: "Full-Stack Developer",
+      when: "Dec 2024 – Dec 2025",
+      what: "Enterprise apps in Angular and NestJS, including payment gateway integrations for two major insurers.",
+    },
+    {
+      org: "Modern Education Society’s College of Engineering",
+      role: "B.E., Electronics and Telecommunications",
+      when: "2019 – 2023",
+      what: "",
+    },
   ],
   stack: [
-    { k: "Frontend", v: "TypeScript, React, Next.js, Tailwind" },
-    { k: "Backend", v: "Python, FastAPI, Node.js, Postgres, Redis" },
-    { k: "AI", v: "Gemini, Claude, RAG with pgvector, evals" },
+    { k: "Languages", v: "TypeScript, JavaScript, Python" },
+    { k: "Frontend", v: "Next.js, React, Angular, Tailwind CSS, Redux, Zustand, React Query" },
+    { k: "Backend", v: "Node.js, Express, NestJS, FastAPI, SQLAlchemy, REST APIs" },
+    { k: "Data", v: "PostgreSQL, MongoDB, MySQL, Redis, Prisma, pgvector" },
+    { k: "AI", v: "Gemini, OpenAI, LangChain, RAG, knowledge graphs, evals" },
+    { k: "Platforms", v: "Stripe, Shopify App Bridge, Meta Marketing API, AWS S3" },
     { k: "Shipping", v: "Vercel, Fly.io, Supabase, Docker, GitHub Actions" },
   ],
   pixel: {
     greeting: "Hi, I’m Harshal.",
     intro:
       "I build full-stack and AI apps, and I write about what breaks along the way. Next.js up front, FastAPI behind it, AI where it earns its place.",
-    ticker: "NOW BUILDING EVENOR + LIFE VAULT /// FULL-STACK AND AI /// BASED IN INDIA ///",
+    ticker: "HELLO, WORLD! /// HUH? /// SHIP IT! /// 200 OK /// 404: SLEEP /// BUG? FEATURE. /// EVALS: 26/26",
+    boardSeconds: 4,
   },
-  resume: null,
+  // The private Blob file uploaded on 2026-11-15. Its URL needs the site's
+  // credentials to read, so it's safe in code; /resume serves it.
+  resume: {
+    url: "https://atjoii4mk7ostpty.private.blob.vercel-storage.com/resume/Harshal_Shinde_CV-7a576c97.pdf",
+    pathname: "resume/Harshal_Shinde_CV-7a576c97.pdf",
+    size: 91255,
+    uploadedAt: "2026-11-15T15:49:54.000Z",
+  },
 };

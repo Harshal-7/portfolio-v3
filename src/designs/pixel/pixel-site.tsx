@@ -1,9 +1,11 @@
 import type { CSSProperties, ReactNode } from "react";
 
 import type { SiteDoc } from "@/lib/site/schema";
-import { splitLead, visibleSections } from "@/lib/site/view";
+import { newTab, splitLead, visibleSections } from "@/lib/site/view";
 
+import { linkKind, PixelIcon } from "../shared/link-icons";
 import { footerText, Paragraphs, ProjectMedia, type Labels } from "../shared/parts";
+import { PixelBoard } from "./pixel-board";
 import { PixelBulb } from "./pixel-bulb";
 
 import "./pixel.css";
@@ -25,6 +27,14 @@ const SPARKS: [string, string, number, number, string, string][] = [
   ["51%", "3%", 4, 2, "0.9s", "4.8s"], ["58%", "95%", 4, 3, "1.9s", "3.7s"], ["64%", "2%", 5, 4, "2.6s", "4.3s"],
   ["71%", "92%", 4, 1, "0.4s", "3.9s"], ["78%", "4%", 4, 2, "1.3s", "4.5s"], ["84%", "90%", 5, 3, "2.1s", "3.6s"],
   ["90%", "3%", 4, 4, "0.7s", "4.0s"], ["95%", "94%", 4, 1, "1.6s", "4.7s"], ["98%", "49%", 4, 2, "2.4s", "3.8s"],
+];
+
+// Shooting pixels, dark mode only, in the empty margins beside the content:
+// [left, top, travel x, travel y, cycle length, first delay].
+const SHOOTING: [string, string, number, number, string, string][] = [
+  ["calc(50% + 430px)", "70px", 220, 150, "11s", "3s"],
+  ["calc(50% - 440px)", "150px", -220, 150, "14s", "7.5s"],
+  ["calc(50% + 470px)", "420px", 200, 140, "17s", "12s"],
 ];
 
 /**
@@ -65,7 +75,7 @@ function Heading({ id, label }: { id?: string; label: string }) {
 function Key({ href, children, accent, className }: { href: string; children: ReactNode; accent?: boolean; className?: string }) {
   return (
     <span className="px-keywrap">
-      <a href={href} className={`px-key${accent ? " px-key-accent" : ""}${className ? ` ${className}` : ""}`}>
+      <a href={href} {...newTab(href)} className={`px-key${accent ? " px-key-accent" : ""}${className ? ` ${className}` : ""}`}>
         {children}
       </a>
     </span>
@@ -91,7 +101,25 @@ export function PixelSite({ site }: { site: SiteDoc }) {
 
   return (
     <div id="top" className="hs-site px-site">
+      <div aria-hidden="true" className="px-grid" />
       <div aria-hidden="true" className="px-sparks">
+        {SHOOTING.map(([left, top, dx, dy, dur, delay], i) => {
+          // The trail sits behind the head, opposite the direction of travel.
+          const sx = Math.sign(dx);
+          const trail = [1, 2, 3, 4, 5]
+            .map((n) => `${-sx * n * 4}px ${-n * 3}px 0 0 rgba(236, 236, 238, ${(0.55 - n * 0.1).toFixed(2)})`)
+            .join(", ");
+          const style = {
+            left,
+            top,
+            boxShadow: trail,
+            animationDuration: dur,
+            animationDelay: delay,
+            "--dx": `${dx}px`,
+            "--dy": `${dy}px`,
+          } as CSSProperties;
+          return <span key={`s${i}`} className="px-shoot" style={style} />;
+        })}
         {SPARKS.map(([top, left, px, c, delay, dur], i) => {
           const color = `var(--spark${c})`;
           const style: CSSProperties = {
@@ -112,10 +140,13 @@ export function PixelSite({ site }: { site: SiteDoc }) {
         <PixelBulb />
 
         <header className="px-header">
-          <span aria-hidden="true" className="px-badge">
-            HS
-          </span>
-          <span className="px-name">{profile.name}</span>
+          <a href="#top" className="px-wordmark" aria-label={`huhharshal, ${profile.name}`}>
+            <span aria-hidden="true">
+              <span className="px-huh">huh</span>
+              <span className="px-wm-dot">·</span>harshal
+              <span className="px-wm-cursor" />
+            </span>
+          </a>
         </header>
 
         <main>
@@ -126,18 +157,12 @@ export function PixelSite({ site }: { site: SiteDoc }) {
               </span>
             </h1>
             {pixel.intro && <p className="px-lede">{pixel.intro}</p>}
-            {pixel.ticker && (
-              <div className="px-ticker" role="marquee" aria-label={pixel.ticker}>
-                <div className="px-marquee" aria-hidden="true">
-                  <span>{pixel.ticker}</span>
-                  <span>{pixel.ticker}</span>
-                </div>
-              </div>
-            )}
+            {pixel.ticker && <PixelBoard text={pixel.ticker} seconds={pixel.boardSeconds} />}
             {site.links.length > 0 && (
               <nav aria-label="Links" className="px-keys">
                 {site.links.map((l, i) => (
                   <Key key={`${i}-${l.label}`} href={l.href}>
+                    <PixelIcon kind={linkKind(l.href)} className="px-key-icon" />
                     {l.label}
                   </Key>
                 ))}
@@ -152,15 +177,7 @@ export function PixelSite({ site }: { site: SiteDoc }) {
                 <div className="px-cards">
                   {site.projects.map((p, i) => (
                     <article key={`${i}-${p.name}`} className="px-card">
-                      <ProjectMedia
-                        project={p}
-                        className="px-media"
-                        phonesClass="px-phones"
-                        phoneClass="px-phone"
-                        backClass="px-phone-back"
-                        shotClass="px-shot"
-                        phoneWidth={132}
-                      />
+                      <ProjectMedia project={p} className="px-media" phoneClass="px-clip" />
                       <div className="px-card-body">
                         <div className="px-card-top">
                           <h3 className="px-card-name">{p.name}</h3>
@@ -185,7 +202,7 @@ export function PixelSite({ site }: { site: SiteDoc }) {
                               </Key>
                             )}
                             {p.codeHref && (
-                              <a href={p.codeHref} className="px-source">
+                              <a href={p.codeHref} {...newTab(p.codeHref)} className="px-source">
                                 Source
                               </a>
                             )}
@@ -208,7 +225,11 @@ export function PixelSite({ site }: { site: SiteDoc }) {
                             {(e.meta || e.href) && (
                               <span className="px-earlier-meta">
                                 {e.meta}
-                                {e.href ? " ↗" : ""}
+                                {e.href && (
+                                  <span aria-hidden="true" className="px-arrow">
+                                    ↗
+                                  </span>
+                                )}
                               </span>
                             )}
                           </span>
@@ -218,7 +239,7 @@ export function PixelSite({ site }: { site: SiteDoc }) {
                       return (
                         <li key={`${i}-${e.name}`}>
                           {e.href ? (
-                            <a href={e.href} className="px-earlier">
+                            <a href={e.href} {...newTab(e.href)} className="px-earlier">
                               {body}
                             </a>
                           ) : (

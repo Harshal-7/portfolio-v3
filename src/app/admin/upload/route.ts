@@ -5,7 +5,7 @@ import { isAdmin, isSavingUnlocked } from "@/lib/admin/session";
 import { blobConfigured, isResumePathname, RESUME_MAX_BYTES } from "@/lib/site/resume";
 
 /**
- * Gives the admin's browser a short-lived presigned URL to upload the résumé
+ * Gives the admin's browser a short-lived presigned URL to upload the resume
  * straight to the private Blob store. (A Server Action can't carry a 5 MB file
  * on Vercel: request bodies stop at 4.5 MB.) The URL only allows a PDF of up to
  * 5 MB at the one path asked for. finishResumeUpload checks the file again.

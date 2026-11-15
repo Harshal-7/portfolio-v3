@@ -28,7 +28,7 @@ export default function AdminPage() {
 }
 
 async function Gate() {
-  if (!(await isAdmin())) return <LoginForm problems={adminSetupProblems()} />;
+  if (!(await isAdmin())) return <LoginForm problems={adminSetupProblems()} localQuick={localStoresEnabled()} />;
 
   const stored = await getStore()
     .readAll()
@@ -53,6 +53,7 @@ async function Gate() {
       initial={stored.doc ?? defaultSite}
       initialCanUndo={stored.history.length > 0}
       storeReady={!!redisConfig() || localStoresEnabled()}
+      localQuick={localStoresEnabled()}
       blobReady={blobConfigured()}
     />
   );
