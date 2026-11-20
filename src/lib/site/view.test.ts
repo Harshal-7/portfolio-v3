@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { defaultSite } from "./defaults";
 import { blobConfigured, blobStoreId, isResumePathname, looksLikePdf, ownBlobAccess, resumeFileName } from "./resume";
-import { findLink, linkNames, monthYear, splitLead, splitTicker, visibleSections } from "./view";
+import { findLink, gamesSite, linkNames, monthYear, splitLead, splitTicker, visibleSections } from "./view";
 
 describe("visibleSections", () => {
   it("lists only the switched-on sections", () => {
@@ -107,5 +107,16 @@ describe("resume checks", () => {
     expect(looksLikePdf(new TextEncoder().encode("%PDF-1.7\n"))).toBe(true);
     expect(looksLikePdf(new TextEncoder().encode("<html>"))).toBe(false);
     expect(looksLikePdf(new Uint8Array())).toBe(false);
+  });
+});
+
+describe("gamesSite", () => {
+  it("takes the site from the first https game link", () => {
+    const games = [{ href: "" }, { href: "/resume" }, { href: "https://games.huhharshal.com/mafia" }];
+    expect(gamesSite(games)).toEqual({ href: "https://games.huhharshal.com/", host: "games.huhharshal.com" });
+  });
+
+  it("is null without one", () => {
+    expect(gamesSite([{ href: "" }])).toBeNull();
   });
 });

@@ -17,6 +17,8 @@ import {
   type SiteDoc,
 } from "@/lib/site/schema";
 
+import { defaultGames } from "@/lib/site/defaults";
+
 import { logout, removeResume, saveContent, savingStatus, undoLastSave, type SaveResult } from "./actions";
 import {
   Area,
@@ -76,6 +78,8 @@ const CLIP_OPTIONS: { value: ImageKey; label: string }[] = [
 const ART_OPTIONS: { value: GameArt; label: string }[] = [
   { value: "knight", label: "Knight on a board" },
   { value: "imposter", label: "Imposter players" },
+  { value: "mafia", label: "Mafia night town" },
+  { value: "patakha", label: "Patakha firecracker" },
   { value: "none", label: "None" },
 ];
 
@@ -406,6 +410,14 @@ export function AdminPanel(props: {
               />
             </Card>
             <Card title="Games" aside={<Count n={draft.games.length} />}>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="min-w-0 flex-1 text-xs text-muted">
+                  The built-in list has every game with its link and picture. Using it replaces this list; Save to keep it.
+                </p>
+                <button type="button" className={ghostButton} onClick={() => set("games", defaultGames.map((g) => ({ ...g })))}>
+                  Use the built-in games
+                </button>
+              </div>
               <ListEditor
                 items={draft.games}
                 max={6}

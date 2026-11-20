@@ -1,22 +1,35 @@
 import type { CSSProperties } from "react";
 
 import type { Game } from "@/lib/site/schema";
-import { newTab } from "@/lib/site/view";
+import { gamesSite, newTab } from "@/lib/site/view";
 
 import {
   ARCHER_SPRITE,
   ARROW_SPRITE,
   BOARD,
   BOW_SPRITE,
+  cellsPath,
+  CRACKER_BANDS,
+  CRACKER_BODY,
+  CRACKER_SHINE,
   HAT_SPRITE,
+  HOUSE_LOW,
+  HOUSE_TALL,
   KNIGHT_LOOP,
   KNIGHT_SPRITE,
   LEGS_STRIDE,
   LEGS_TOGETHER,
+  MOON_SPRITE,
   PLAYER_SPRITE,
   QUESTION_SPRITE,
+  ringCells,
+  SLEEPER_SPRITE,
+  SPARK_CROSS,
+  SPARK_PLUS,
   spritePath,
+  SUN_SPRITE,
   TARGET_SPRITE,
+  Z_SPRITE,
 } from "../shared/game-art";
 
 // Screens are 80 × 30 sprite pixels: the board strip, 10 pixels a square.
@@ -119,7 +132,90 @@ function ImposterScreen() {
   );
 }
 
-const SCREENS = { knight: KnightScreen, imposter: ImposterScreen } as const;
+// Mafia: three friends asleep in a night town. A pair of red eyes opens in a
+// dark window, then dawn breaks and everyone wakes up. pixel.css times it.
+const SLEEPERS = [6, 18, 30];
+const STARS_A: [number, number][] = [[14, 3], [30, 6], [44, 2], [58, 4], [76, 2]];
+const STARS_B: [number, number][] = [[22, 2], [38, 5], [50, 7], [64, 3]];
+
+function MafiaScreen() {
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="ps-svg" aria-hidden="true">
+      <rect width={W} height={H} className="pm-sky" />
+      <g className="pm-night">
+        <path d={cellsPath(STARS_A)} className="pm-star pm-star-a" />
+        <path d={cellsPath(STARS_B)} className="pm-star pm-star-b" />
+        <path d={spritePath(MOON_SPRITE, 4, 2)} className="pm-moon" />
+      </g>
+      <path d={spritePath(SUN_SPRITE, 40, 21)} className="pm-sun pm-day" />
+      <path d={spritePath(HOUSE_LOW, 52, 13)} className="pm-house" />
+      <path d={spritePath(HOUSE_TALL, 65, 8)} className="pm-house-tall" />
+      <rect x={56} y={17} width={3} height={2} className="pm-lamp" />
+      <rect x={68} y={13} width={5} height={3} className="pm-window" />
+      <path d={cellsPath([[69, 14], [71, 14]])} className="pm-eyes" />
+      <path d={`M0 24h${W}v1h-${W}z`} className="pm-ground" />
+      <g className="pm-night">
+        {SLEEPERS.map((x, i) => (
+          <g key={x}>
+            <path d={spritePath(SLEEPER_SPRITE, x, 16)} className="pm-person" />
+            <path
+              d={spritePath(Z_SPRITE, x + 5, 12)}
+              className="pm-z"
+              style={{ animationDelay: `${(i * 0.8).toFixed(1)}s` }}
+            />
+          </g>
+        ))}
+      </g>
+      <g className="pm-day">
+        {SLEEPERS.map((x) => (
+          <path key={x} d={spritePath(PLAYER_SPRITE, x, 16)} className="pm-person" />
+        ))}
+      </g>
+      <rect width={W} height={H} className="pm-dawn" />
+    </svg>
+  );
+}
+
+// Patakha: a spark runs down the fuse into the firecracker, it bursts, and a
+// fresh one is set down. The fuse is straight, so one cover rectangle growing
+// from the tip hides the burnt part; pixel.css steps it with the spark.
+const FUSE_X = 34;
+const FUSE_LEN = 16;
+const FUSE_Y = 14;
+const CRACKER_X = FUSE_X + FUSE_LEN;
+const CRACKER_Y = 11;
+const BURST = { x: CRACKER_X + 3, y: CRACKER_Y + 6 };
+const ringA = ringCells(BURST.x, BURST.y, 7, 12);
+
+function PatakhaScreen() {
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="ps-svg" aria-hidden="true">
+      <rect width={W} height={H} className="ps-sq-a" />
+      <path d={`M6 24h${W - 12}v1h-${W - 12}z`} className="ps-ground" />
+      <path d={`M${FUSE_X} ${FUSE_Y}h${FUSE_LEN}v1h-${FUSE_LEN}zM${FUSE_X} ${FUSE_Y - 1}h1v1h-1z`} className="pp-fuse" />
+      {/* One pixel larger than the fuse all round, so no sliver shows at odd screen sizes. */}
+      <rect x={FUSE_X - 1} y={FUSE_Y - 2} width={FUSE_LEN + 1} height={4} className="pp-burnt" />
+      <g className="pp-cracker">
+        <path d={spritePath(CRACKER_BODY, CRACKER_X, CRACKER_Y)} className="pp-body" />
+        <path d={spritePath(CRACKER_BANDS, CRACKER_X, CRACKER_Y)} className="pp-band" />
+        <path d={spritePath(CRACKER_SHINE, CRACKER_X, CRACKER_Y)} className="pp-shine" />
+      </g>
+      <g className="pp-spark">
+        <g className="pp-spark-move">
+          <path d={spritePath(SPARK_PLUS, FUSE_X - 1, FUSE_Y - 1)} className="pp-spark-a" />
+          <path d={spritePath(SPARK_CROSS, FUSE_X - 1, FUSE_Y - 1)} className="pp-spark-b" />
+        </g>
+      </g>
+      <path d={cellsPath(ringCells(BURST.x, BURST.y, 3, 8))} className="pp-burst pp-burst-1" />
+      <path d={cellsPath(ringA.filter((_, i) => i % 2 === 0))} className="pp-burst pp-burst-2 pp-gold" />
+      <path d={cellsPath(ringA.filter((_, i) => i % 2 === 1))} className="pp-burst pp-burst-2 pp-orange" />
+      <path d={cellsPath(ringCells(BURST.x, BURST.y, 10, 12, 0.5))} className="pp-burst pp-burst-3" />
+      <rect width={W} height={H} className="pp-flash" />
+    </svg>
+  );
+}
+
+const SCREENS = { knight: KnightScreen, imposter: ImposterScreen, mafia: MafiaScreen, patakha: PatakhaScreen } as const;
 
 // The archer's strip is 64 × 11 sprite pixels. The archer stops at x 14; the
 // arrow sits on the bow at x 18 and sticks in the target at x 53. pixel.css
@@ -160,48 +256,56 @@ export function ArcadeArcher() {
 
 /**
  * Pixel's game cards: smaller than the project cards, each with a little
- * arcade screen that plays all the time.
+ * arcade screen that plays all the time, then a link to the rest.
  */
 export function PixelGames({ games }: { games: Game[] }) {
+  const more = gamesSite(games);
   return (
-    <div className="px-games">
-      {games.map((g, i) => {
-        const Screen = g.art === "none" ? null : SCREENS[g.art];
-        const inner = (
-          <>
-            {Screen && (
-              <div className="px-screen">
-                <Screen />
-              </div>
-            )}
-            <div className="px-game-body">
-              <div className="px-game-top">
-                <h3 className="px-game-name">{g.name}</h3>
-                {g.meta && <span className="px-game-kind">{g.meta.toUpperCase()}</span>}
-              </div>
-              {g.what && <p className="px-game-one">{g.what}</p>}
-              {g.href && (
-                <span className="px-game-play">
-                  <span className="px-keywrap">
-                    <span className="px-key px-key-accent px-key-mini">
-                      Play <span aria-hidden="true" className="px-tri" />
+    <>
+      <div className="px-games">
+        {games.map((g, i) => {
+          const Screen = g.art === "none" ? null : SCREENS[g.art];
+          const inner = (
+            <>
+              {Screen && (
+                <div className="px-screen">
+                  <Screen />
+                </div>
+              )}
+              <div className="px-game-body">
+                <div className="px-game-top">
+                  <h3 className="px-game-name">{g.name}</h3>
+                  {g.meta && <span className="px-game-kind">{g.meta.toUpperCase()}</span>}
+                </div>
+                {g.what && <p className="px-game-one">{g.what}</p>}
+                {g.href && (
+                  <span className="px-game-play">
+                    <span className="px-keywrap">
+                      <span className="px-key px-key-accent px-key-mini">
+                        Play <span aria-hidden="true" className="px-tri" />
+                      </span>
                     </span>
                   </span>
-                </span>
-              )}
+                )}
+              </div>
+            </>
+          );
+          return g.href ? (
+            <a key={`${i}-${g.name}`} href={g.href} {...newTab(g.href)} className="px-game">
+              {inner}
+            </a>
+          ) : (
+            <div key={`${i}-${g.name}`} className="px-game">
+              {inner}
             </div>
-          </>
-        );
-        return g.href ? (
-          <a key={`${i}-${g.name}`} href={g.href} {...newTab(g.href)} className="px-game">
-            {inner}
-          </a>
-        ) : (
-          <div key={`${i}-${g.name}`} className="px-game">
-            {inner}
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+      {more && (
+        <a href={more.href} {...newTab(more.href)} className="px-more">
+          More games at {more.host} <span aria-hidden="true" className="px-tri" />
+        </a>
+      )}
+    </>
   );
 }
