@@ -7,7 +7,7 @@ import { findLink, linkNames, monthYear, splitLead, splitTicker, visibleSections
 describe("visibleSections", () => {
   it("lists only the switched-on sections", () => {
     const sections = { ...defaultSite.sections, earlier: false, stack: false };
-    expect([...visibleSections({ sections })]).toEqual(["projects", "about", "experience", "contact"]);
+    expect([...visibleSections({ sections })]).toEqual(["projects", "games", "about", "experience", "contact"]);
   });
 });
 

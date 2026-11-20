@@ -1,4 +1,22 @@
-import type { SiteDoc } from "./schema";
+import type { Game, SiteDoc } from "./schema";
+
+/** Small browser games, played on the separate games site. */
+export const defaultGames: Game[] = [
+  {
+    name: "Knight’s Tour",
+    what: "Move a chess knight to every square exactly once, on boards from 5×5 to 8×8.",
+    meta: "Puzzle",
+    href: "https://games-eight-rho.vercel.app/knights-tour",
+    art: "knight",
+  },
+  {
+    name: "Imposter",
+    what: "Pass one phone around. Everyone gets the secret word except the imposter, who has to fake it.",
+    meta: "Party game",
+    href: "https://games-eight-rho.vercel.app/imposter",
+    art: "imposter",
+  },
+];
 
 /**
  * The content from the design canvas. The site serves this until the first admin
@@ -13,6 +31,7 @@ export const defaultSite: SiteDoc = {
   sections: {
     projects: true,
     earlier: true,
+    games: true,
     about: true,
     experience: true,
     stack: true,
@@ -96,6 +115,7 @@ export const defaultSite: SiteDoc = {
       href: "https://github.com/Harshal-7",
     },
   ],
+  games: defaultGames,
   experience: [
     {
       org: "QuickAds",

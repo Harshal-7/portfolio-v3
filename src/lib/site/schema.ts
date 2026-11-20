@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { defaultGames } from "./defaults";
+
 /**
  * The whole site's editable content, stored as one JSON document.
  * Every text field has a length cap, and every link must be https:, mailto:
@@ -8,13 +10,15 @@ import { z } from "zod";
 
 export const DESIGNS = ["notebook", "pixel"] as const;
 export const MODES = ["system", "light", "dark"] as const;
-export const SECTION_KEYS = ["projects", "earlier", "about", "experience", "stack", "contact"] as const;
+export const SECTION_KEYS = ["projects", "earlier", "games", "about", "experience", "stack", "contact"] as const;
 export const IMAGE_KEYS = ["evenor", "life-vault", "none"] as const;
+export const GAME_ART = ["knight", "imposter", "none"] as const;
 
 export type Design = (typeof DESIGNS)[number];
 export type DefaultMode = (typeof MODES)[number];
 export type SectionKey = (typeof SECTION_KEYS)[number];
 export type ImageKey = (typeof IMAGE_KEYS)[number];
+export type GameArt = (typeof GAME_ART)[number];
 
 const text = (max: number) => z.string().trim().max(max);
 const required = (max: number) => text(max).min(1, "Can't be empty");
@@ -64,6 +68,11 @@ export const earlierSchema = z.object({
   href: optionalHref,
 });
 
+/** A game card: a list row plus the little animated picture it shows. */
+export const gameSchema = earlierSchema.extend({
+  art: z.enum(GAME_ART).default("none"),
+});
+
 export const experienceSchema = z.object({
   org: required(60),
   role: text(80),
@@ -90,6 +99,8 @@ export const contentSchema = z.object({
   sections: z.object({
     projects: z.boolean(),
     earlier: z.boolean(),
+    /** Older saved documents come from before the games section, so it starts switched on. */
+    games: z.boolean().default(true),
     about: z.boolean(),
     experience: z.boolean(),
     stack: z.boolean(),
@@ -108,6 +119,8 @@ export const contentSchema = z.object({
   links: z.array(linkSchema).max(8),
   projects: z.array(projectSchema).max(6),
   earlier: z.array(earlierSchema).max(10),
+  /** Older saved documents have no games yet; they get the built-in list. */
+  games: z.array(gameSchema).max(6).default(() => defaultGames.map((g) => ({ ...g }))),
   experience: z.array(experienceSchema).max(10),
   stack: z.array(stackRowSchema).max(8),
   pixel: z.object({
@@ -128,6 +141,8 @@ export const siteSchema = contentSchema.extend({
 export type SiteContent = z.infer<typeof contentSchema>;
 export type SiteDoc = z.infer<typeof siteSchema>;
 export type Project = z.infer<typeof projectSchema>;
+export type ListItem = z.infer<typeof earlierSchema>;
+export type Game = z.infer<typeof gameSchema>;
 export type SiteLink = z.infer<typeof linkSchema>;
 export type Resume = z.infer<typeof resumeSchema>;
 
