@@ -4,13 +4,19 @@ import type { Game } from "@/lib/site/schema";
 import { newTab } from "@/lib/site/view";
 
 import {
+  ARCHER_SPRITE,
+  ARROW_SPRITE,
   BOARD,
-  HEART_SPRITE,
+  BOW_SPRITE,
+  HAT_SPRITE,
   KNIGHT_LOOP,
   KNIGHT_SPRITE,
+  LEGS_STRIDE,
+  LEGS_TOGETHER,
   PLAYER_SPRITE,
   QUESTION_SPRITE,
   spritePath,
+  TARGET_SPRITE,
 } from "../shared/game-art";
 
 // Screens are 80 × 30 sprite pixels: the board strip, 10 pixels a square.
@@ -115,16 +121,40 @@ function ImposterScreen() {
 
 const SCREENS = { knight: KnightScreen, imposter: ImposterScreen } as const;
 
-/** Three lives and a blinking prompt beside the Arcade heading. */
-export function ArcadeHud() {
-  const hearts = [0, 8, 16].map((x) => spritePath(HEART_SPRITE, x, 0)).join("");
+// The archer's strip is 64 × 11 sprite pixels. The archer stops at x 14; the
+// arrow sits on the bow at x 18 and sticks in the target at x 53. pixel.css
+// moves the arrow by that 35 and walks the archer in from 22 pixels left.
+const ARCHER_X = 14;
+const ARCHER_Y = 0;
+const ARROW_STUCK_X = 53;
+const TARGET_X = 56;
+const ground = Array.from({ length: 32 }, (_, i) => `M${i * 2} 10h1v1h-1z`).join("");
+
+/**
+ * Beside the Arcade heading: a little archer walks in, draws, shoots the
+ * target, and blinks out before walking in again. Without motion, the archer
+ * stands still with the arrow already in the target.
+ */
+export function ArcadeArcher() {
   return (
-    <span aria-hidden="true" className="px-hud">
-      <svg viewBox="0 0 23 6" className="px-hearts">
-        <path d={hearts} />
-      </svg>
-      <span className="px-start">PRESS START</span>
-    </span>
+    <svg viewBox="0 0 64 11" className="px-archer" aria-hidden="true">
+      <path d={ground} className="ar-ground" />
+      <g className="ar-target">
+        <path d={spritePath(TARGET_SPRITE, TARGET_X, 3)} className="ar-ring" />
+        <path d={`M${TARGET_X + 2} 8h1v2h-1z`} className="ar-post" />
+      </g>
+      <path d={`M${TARGET_X + 2} 0h1v1h-1zM${TARGET_X + 1} 1h3v1h-3zM${TARGET_X + 2} 2h1v1h-1z`} className="ar-spark" />
+      <g className="ar-blink">
+        <g className="ar-walker">
+          <path d={spritePath(HAT_SPRITE, ARCHER_X, ARCHER_Y)} className="ar-hat" />
+          <path d={spritePath(ARCHER_SPRITE, ARCHER_X, ARCHER_Y)} className="ar-ink" />
+          <path d={spritePath(BOW_SPRITE, ARCHER_X, ARCHER_Y)} className="ar-bow" />
+          <path d={spritePath(LEGS_STRIDE, ARCHER_X, ARCHER_Y + 8)} className="ar-ink ar-stride" />
+          <path d={spritePath(LEGS_TOGETHER, ARCHER_X, ARCHER_Y + 8)} className="ar-ink ar-feet" />
+        </g>
+        <path d={spritePath(ARROW_SPRITE, ARROW_STUCK_X, ARCHER_Y + 4)} className="ar-ink ar-arrow" />
+      </g>
+    </svg>
   );
 }
 

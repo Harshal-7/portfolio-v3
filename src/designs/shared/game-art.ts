@@ -58,15 +58,44 @@ export const QUESTION_SPRITE = [
   "..X..",
 ] as const;
 
-/** 7 × 6, for the lives in the Arcade heading. */
-export const HEART_SPRITE = [
-  ".XX.XX.",
-  "XXXXXXX",
-  "XXXXXXX",
-  ".XXXXX.",
-  "..XXX..",
-  "...X...",
+// The archer beside the Arcade heading: 8 wide, 10 tall, facing right.
+
+/** A pointed hat with a brim, drawn in green. */
+export const HAT_SPRITE = [".XXX....", "..XXXX.."] as const;
+
+/** Head (the gap under the brim is the eye), arm reaching forward, and body. */
+export const ARCHER_SPRITE = [
+  "........",
+  "........",
+  "..XX....",
+  "..XXX...",
+  "...X....",
+  "..XXXXX.",
+  "..XXX...",
+  "..XXX...",
 ] as const;
+
+/** The bow, held out in front at arm height and curved away. */
+export const BOW_SPRITE = [
+  "........",
+  "........",
+  "........",
+  "......X.",
+  ".......X",
+  ".......X",
+  ".......X",
+  "......X.",
+] as const;
+
+/** Mid-step and standing legs, drawn under the body. */
+export const LEGS_STRIDE = [".X...X..", "X.....X."] as const;
+export const LEGS_TOGETHER = ["..X.X...", "..X.X..."] as const;
+
+/** 5 × 3, pointing right. */
+export const ARROW_SPRITE = ["X..X.", "XXXXX", "X..X."] as const;
+
+/** 5 × 5 rings with a centre. */
+export const TARGET_SPRITE = [".XXX.", "X...X", "X.X.X", "X...X", ".XXX."] as const;
 
 /** The lit cells of a sprite, as [x, y] pairs. */
 export function litCells(rows: readonly string[]): [number, number][] {

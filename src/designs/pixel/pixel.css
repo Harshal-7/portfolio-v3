@@ -811,38 +811,203 @@ html[data-mode="dark"] .px-site .px-shoot {
   }
 }
 
+/* The archer's strip, pushed to the right end of the heading row. It fades in
+   from the left, so the archer seems to walk in from off-stage. One 7 s loop:
+   walk in (to 30%), nock (32%), shoot (40%), hit (50%), blink out (90–96%). */
+.px-archer {
+  align-self: center;
+  margin-left: auto;
+  display: block;
+  width: clamp(128px, 32cqi, 192px);
+  height: auto;
+  overflow: hidden;
+  shape-rendering: crispEdges;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 22%);
+  mask-image: linear-gradient(to right, transparent, #000 22%);
+}
+.px-site .px-archer * {
+  transition: none;
+}
+.ar-ink {
+  fill: var(--fg);
+}
+.ar-bow {
+  fill: var(--accent);
+}
+.ar-hat {
+  fill: var(--spark2);
+}
+.ar-ring {
+  fill: var(--spark4);
+}
+.ar-post,
+.ar-ground {
+  fill: var(--muted);
+}
+.ar-ground {
+  opacity: 0.45;
+}
+.ar-spark {
+  fill: var(--spark3);
+  opacity: 0;
+}
+.ar-stride {
+  opacity: 0;
+}
+.ar-blink {
+  animation: arBlink 7s steps(1, end) infinite both;
+}
+.ar-walker {
+  animation: arWalk 7s infinite both;
+}
+.ar-stride {
+  animation: arStride 7s steps(1, end) infinite both;
+}
+.ar-feet {
+  animation: arFeet 7s steps(1, end) infinite both;
+}
+.ar-arrow {
+  animation: arArrow 7s infinite both;
+}
+.ar-target {
+  animation: arHit 7s steps(1, end) infinite both;
+}
+.ar-spark {
+  animation: arSpark 7s steps(1, end) infinite both;
+}
+@keyframes arWalk {
+  0% {
+    transform: translateX(-22px);
+    animation-timing-function: steps(22, end);
+  }
+  30% {
+    transform: none;
+    animation-timing-function: steps(1, end);
+  }
+  /* A one-pixel kick back as the arrow leaves. */
+  40% {
+    transform: translateX(-1px);
+    animation-timing-function: steps(1, end);
+  }
+  43%,
+  100% {
+    transform: none;
+  }
+}
+@keyframes arStride {
+  0% {
+    opacity: 1;
+  }
+  5% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  15% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  25%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes arFeet {
+  0% {
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  10% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  20% {
+    opacity: 0;
+  }
+  25%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes arArrow {
+  0% {
+    opacity: 0;
+    transform: translateX(-35px);
+    animation-timing-function: steps(1, end);
+  }
+  32% {
+    opacity: 1;
+    transform: translateX(-35px);
+    animation-timing-function: steps(1, end);
+  }
+  40% {
+    opacity: 1;
+    transform: translateX(-35px);
+    animation-timing-function: steps(12, end);
+  }
+  50%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes arHit {
+  0% {
+    transform: none;
+  }
+  50% {
+    transform: translateX(1px);
+  }
+  52% {
+    transform: translateX(-1px);
+  }
+  54% {
+    transform: translateX(1px);
+  }
+  56%,
+  100% {
+    transform: none;
+  }
+}
+@keyframes arSpark {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  58%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes arBlink {
+  0% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 0;
+  }
+  92% {
+    opacity: 1;
+  }
+  94%,
+  100% {
+    opacity: 0;
+  }
+}
+
 /* Arcade: small game cards, each with a little screen. The screen keeps the
    same dark colours in both themes, like an arcade cabinet. Its animations
    wait on the first frame until the card is hovered or focused; touch screens
    can't hover, so there they always play. */
-.px-hud {
-  align-self: center;
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.px-hearts {
-  display: block;
-  width: 46px;
-  height: auto;
-  fill: var(--spark4);
-  shape-rendering: crispEdges;
-}
-.px-start {
-  font-family: var(--px-dot);
-  font-weight: 800;
-  font-size: 13px;
-  letter-spacing: 0.1em;
-  color: var(--accent);
-  animation: pxBlink 1.1s steps(1) infinite;
-}
-@media (max-width: 440px) {
-  .px-hearts {
-    display: none;
-  }
-}
-
 .px-games {
   display: flex;
   flex-wrap: wrap;

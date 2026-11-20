@@ -6,7 +6,7 @@ import { newTab, splitLead, visibleSections } from "@/lib/site/view";
 import { linkKind, PixelIcon } from "../shared/link-icons";
 import { footerText, Paragraphs, ProjectMedia, type Labels } from "../shared/parts";
 import { PixelBoard } from "./pixel-board";
-import { ArcadeHud, PixelGames } from "./pixel-games";
+import { ArcadeArcher, PixelGames } from "./pixel-games";
 import { PixelBulb } from "./pixel-bulb";
 
 import "./pixel.css";
@@ -267,7 +267,7 @@ export function PixelSite({ site }: { site: SiteDoc }) {
 
           {showGames && (
             <section aria-label={LABELS.games}>
-              <Heading id="games" label={LABELS.games} aside={<ArcadeHud />} />
+              <Heading id="games" label={LABELS.games} aside={<ArcadeArcher />} />
               <PixelGames games={site.games} />
             </section>
           )}
