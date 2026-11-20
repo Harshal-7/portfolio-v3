@@ -1,4 +1,17 @@
-import type { Game, SiteDoc } from "./schema";
+import type { Game, SectionKey, SiteDoc } from "./schema";
+
+/** Page order for documents saved before the order could be changed. */
+export const DEFAULT_SECTION_ORDER: readonly SectionKey[] = [
+  "projects",
+  "experience",
+  "games",
+  "earlier",
+  "about",
+  "stack",
+  "contact",
+];
+
+
 
 /** Small browser games, played on the separate games site. The badge is who plays. */
 export const defaultGames: Game[] = [
@@ -51,6 +64,7 @@ export const defaultSite: SiteDoc = {
     stack: true,
     contact: true,
   },
+  sectionOrder: [...DEFAULT_SECTION_ORDER],
   profile: {
     name: "Harshal Shinde",
     role: "Full-stack & AI developer",

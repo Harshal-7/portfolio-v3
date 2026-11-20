@@ -1,13 +1,54 @@
 import { describe, expect, it } from "vitest";
 
-import { defaultSite } from "./defaults";
+import { DEFAULT_SECTION_ORDER, defaultSite } from "./defaults";
 import { blobConfigured, blobStoreId, isResumePathname, looksLikePdf, ownBlobAccess, resumeFileName } from "./resume";
-import { findLink, gamesSite, linkNames, monthYear, splitLead, splitTicker, visibleSections } from "./view";
+import {
+  findLink,
+  gamesSite,
+  linkNames,
+  monthYear,
+  pageSections,
+  presentSections,
+  splitLead,
+  splitTicker,
+  visibleSections,
+} from "./view";
 
 describe("visibleSections", () => {
   it("lists only the switched-on sections", () => {
     const sections = { ...defaultSite.sections, earlier: false, stack: false };
     expect([...visibleSections({ sections })]).toEqual(["projects", "games", "about", "experience", "contact"]);
+  });
+});
+
+describe("pageSections", () => {
+  const all = new Set(DEFAULT_SECTION_ORDER);
+
+  it("follows the saved order and puts Stack inside About when it comes right after", () => {
+    expect(pageSections(DEFAULT_SECTION_ORDER, all)).toEqual([
+      { key: "projects", stackInside: false },
+      { key: "experience", stackInside: false },
+      { key: "games", stackInside: false },
+      { key: "earlier", stackInside: false },
+      { key: "about", stackInside: true },
+      { key: "contact", stackInside: false },
+    ]);
+  });
+
+  it("gives Stack its own section when it is moved away from About", () => {
+    const order = ["stack", "projects", "about", "contact"] as const;
+    expect(pageSections(order, all).map((s) => s.key)).toEqual(["stack", "projects", "about", "contact"]);
+  });
+
+  it("skips hidden sections, so About and Stack can still pair up", () => {
+    const order = ["about", "games", "stack"] as const;
+    expect(pageSections(order, new Set(["about", "stack"] as const))).toEqual([{ key: "about", stackInside: true }]);
+  });
+
+  it("leaves out sections that are switched on but empty", () => {
+    const site = { ...defaultSite, earlier: [], sections: { ...defaultSite.sections, games: false } };
+    expect([...presentSections(site)]).not.toContain("earlier");
+    expect([...presentSections(site)]).not.toContain("games");
   });
 });
 

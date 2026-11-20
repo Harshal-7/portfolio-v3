@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { defaultSite } from "./defaults";
+import { DEFAULT_SECTION_ORDER, defaultSite } from "./defaults";
 import { contentOf, contentSchema, isSafeHref, siteSchema } from "./schema";
 
 describe("isSafeHref", () => {
@@ -71,6 +71,20 @@ describe("site schema", () => {
     expect(parsed.sections.games).toBe(true);
     expect(parsed.games).toEqual(defaultSite.games);
     expect(parsed.games).not.toBe(defaultSite.games);
+  });
+
+  it("gives older documents the default section order and fills in missing sections", () => {
+    const { sectionOrder: _order, ...older } = defaultSite;
+    expect(siteSchema.parse(older).sectionOrder).toEqual(DEFAULT_SECTION_ORDER);
+    expect(siteSchema.parse({ ...defaultSite, sectionOrder: ["contact", "contact", "games"] }).sectionOrder).toEqual([
+      "contact",
+      "games",
+      "projects",
+      "experience",
+      "earlier",
+      "about",
+      "stack",
+    ]);
   });
 
   it("ships the four games, all on the games site, each with its picture", () => {

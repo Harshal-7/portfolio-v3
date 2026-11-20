@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 
 import type { ListItem, SiteDoc } from "@/lib/site/schema";
-import { newTab, splitLead, visibleSections } from "@/lib/site/view";
+import { newTab, pageSections, presentSections, splitLead } from "@/lib/site/view";
 
 import { linkKind, PixelIcon } from "../shared/link-icons";
 import { footerText, Paragraphs, ProjectMedia, type Labels } from "../shared/parts";
@@ -131,16 +131,21 @@ function LinkList({ items }: { items: ListItem[] }) {
  * bulb burst, pixel cards. Mix D on the design canvas.
  */
 export function PixelSite({ site }: { site: SiteDoc }) {
-  const show = visibleSections(site);
   const { profile, pixel } = site;
   const footer = footerText(site);
   const [contactLead, contactRest] = splitLead(profile.contactLine);
 
-  const showProjects = show.has("projects") && site.projects.length > 0;
-  const showEarlier = show.has("earlier") && site.earlier.length > 0;
-  const showGames = show.has("games") && site.games.length > 0;
-  const showAbout = show.has("about") && profile.about.trim().length > 0;
-  const showExperience = show.has("experience") && site.experience.length > 0;
+  const sections = pageSections(site.sectionOrder, presentSections(site));
+  const stackList = (
+    <dl className="px-stack">
+      {site.stack.map((row, i) => (
+        <div key={`${i}-${row.k}`}>
+          <dt>{row.k}</dt>
+          <dd>{row.v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
 
   return (
     <div id="top" className="hs-site px-site">
@@ -213,122 +218,124 @@ export function PixelSite({ site }: { site: SiteDoc }) {
             )}
           </section>
 
-          {(showProjects || showEarlier) && (
-            <section aria-label={showProjects ? LABELS.projects : LABELS.earlier}>
-              <Heading id="work" label={showProjects ? LABELS.projects : LABELS.earlier} />
-              {showProjects && (
-                <div className="px-cards">
-                  {site.projects.map((p, i) => (
-                    <article key={`${i}-${p.name}`} className="px-card">
-                      <ProjectMedia project={p} className="px-media" phoneClass="px-clip" />
-                      <div className="px-card-body">
-                        <div className="px-card-top">
-                          <h3 className="px-card-name">{p.name}</h3>
-                          {p.status && <span className="px-status">{p.status.toUpperCase()}</span>}
-                        </div>
-                        {p.tag && <p className="px-tag">{p.tag}</p>}
-                        {p.one && <p className="px-one">{p.one}</p>}
-                        {p.stack.length > 0 && (
-                          <div className="px-chips">
-                            {p.stack.map((s, j) => (
-                              <span key={`${j}-${s}`} className="px-chip">
-                                {s}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                        {(p.liveHref || p.codeHref) && (
-                          <div className="px-card-actions">
-                            {p.liveHref && (
-                              <Key href={p.liveHref} accent className="px-key-small">
-                                Open <Tri />
-                              </Key>
-                            )}
-                            {p.codeHref && (
-                              <a href={p.codeHref} {...newTab(p.codeHref)} className="px-source">
-                                Source
-                              </a>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              )}
-              {showEarlier && (
-                <>
-                  {showProjects && <h3 className="px-sub">{LABELS.earlier}</h3>}
-                  <LinkList items={site.earlier} />
-                </>
-              )}
-            </section>
-          )}
-
-          {showGames && (
-            <section aria-label={LABELS.games}>
-              <Heading id="games" label={LABELS.games} aside={<ArcadeArcher />} />
-              <PixelGames games={site.games} />
-            </section>
-          )}
-
-          {(showAbout || showExperience) && (
-            <section aria-label={showAbout ? LABELS.about : LABELS.experience}>
-              <Heading id="about" label={showAbout ? LABELS.about : LABELS.experience} />
-              {showAbout && (
-                <div className="px-about">
-                  <Paragraphs text={profile.about} />
-                </div>
-              )}
-              {showExperience && (
-                <>
-                  {showAbout && <h3 className="px-sub px-sub-exp">{LABELS.experience}</h3>}
-                  <ol className="px-list">
-                    {site.experience.map((x, i) => (
-                      <li key={`${i}-${x.org}`} className="px-exp">
-                        <div className="px-exp-main">
-                          <span className="px-org">{x.org}</span>
-                          {x.role && <span className="px-exp-role">{x.role}</span>}
-                          {x.what && <span className="px-exp-what">{x.what}</span>}
-                        </div>
-                        {x.when && <span className="px-when">{x.when}</span>}
-                      </li>
-                    ))}
-                  </ol>
-                </>
-              )}
-            </section>
-          )}
-
-          {show.has("stack") && site.stack.length > 0 && (
-            <section aria-label={LABELS.stack}>
-              <Heading label={LABELS.stack} />
-              <dl className="px-stack">
-                {site.stack.map((row, i) => (
-                  <div key={`${i}-${row.k}`}>
-                    <dt>{row.k}</dt>
-                    <dd>{row.v}</dd>
+          {sections.map(({ key, stackInside }) => {
+            switch (key) {
+              case "projects":
+                return (
+                  <section key={key} aria-label={LABELS.projects}>
+                    <Heading id="work" label={LABELS.projects} />
+          <div className="px-cards">
+            {site.projects.map((p, i) => (
+              <article key={`${i}-${p.name}`} className="px-card">
+                <ProjectMedia project={p} className="px-media" phoneClass="px-clip" />
+                <div className="px-card-body">
+                  <div className="px-card-top">
+                    <h3 className="px-card-name">{p.name}</h3>
+                    {p.status && <span className="px-status">{p.status.toUpperCase()}</span>}
                   </div>
-                ))}
-              </dl>
-            </section>
-          )}
-
-          {show.has("contact") && (
-            <section aria-label={LABELS.contact}>
-              <Heading id="contact" label={LABELS.contact} />
-              <div className="px-contact">
-                {contactLead && <p className="px-contact-lead">{contactLead}</p>}
-                {contactRest && <p className="px-contact-rest">{contactRest}</p>}
-                <div className="px-contact-row">
-                  <Key href={`mailto:${profile.email}`} accent className="px-key-big">
-                    Email me <Tri />
-                  </Key>
-                  <span className="px-email">{profile.email}</span>
+                  {p.tag && <p className="px-tag">{p.tag}</p>}
+                  {p.one && <p className="px-one">{p.one}</p>}
+                  {p.stack.length > 0 && (
+                    <div className="px-chips">
+                      {p.stack.map((s, j) => (
+                        <span key={`${j}-${s}`} className="px-chip">
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {(p.liveHref || p.codeHref) && (
+                    <div className="px-card-actions">
+                      {p.liveHref && (
+                        <Key href={p.liveHref} accent className="px-key-small">
+                          Open <Tri />
+                        </Key>
+                      )}
+                      {p.codeHref && (
+                        <a href={p.codeHref} {...newTab(p.codeHref)} className="px-source">
+                          Source
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
-            </section>
-          )}
+              </article>
+            ))}
+          </div>
+                  </section>
+                );
+              case "experience":
+                return (
+                  <section key={key} aria-label={LABELS.experience}>
+                    <Heading id="experience" label={LABELS.experience} />
+          <ol className="px-list">
+            {site.experience.map((x, i) => (
+              <li key={`${i}-${x.org}`} className="px-exp">
+                <div className="px-exp-main">
+                  <span className="px-org">{x.org}</span>
+                  {x.role && <span className="px-exp-role">{x.role}</span>}
+                  {x.what && <span className="px-exp-what">{x.what}</span>}
+                </div>
+                {x.when && <span className="px-when">{x.when}</span>}
+              </li>
+            ))}
+          </ol>
+                  </section>
+                );
+              case "games":
+                return (
+                  <section key={key} aria-label={LABELS.games}>
+                    <Heading id="games" label={LABELS.games} aside={<ArcadeArcher />} />
+                    <PixelGames games={site.games} />
+                  </section>
+                );
+              case "earlier":
+                return (
+                  <section key={key} aria-label={LABELS.earlier}>
+                    <Heading id="earlier" label={LABELS.earlier} />
+                    <LinkList items={site.earlier} />
+                  </section>
+                );
+              case "about":
+                return (
+                  <section key={key} aria-label={LABELS.about}>
+                    <Heading id="about" label={LABELS.about} />
+                    <div className="px-about">
+                      <Paragraphs text={profile.about} />
+                    </div>
+                    {stackInside && (
+                      <>
+                        <h3 className="px-sub px-sub-exp">{LABELS.stack}</h3>
+                        {stackList}
+                      </>
+                    )}
+                  </section>
+                );
+              case "stack":
+                return (
+                  <section key={key} aria-label={LABELS.stack}>
+                    <Heading id="stack" label={LABELS.stack} />
+                    {stackList}
+                  </section>
+                );
+              case "contact":
+                return (
+                  <section key={key} aria-label={LABELS.contact}>
+                    <Heading id="contact" label={LABELS.contact} />
+          <div className="px-contact">
+            {contactLead && <p className="px-contact-lead">{contactLead}</p>}
+            {contactRest && <p className="px-contact-rest">{contactRest}</p>}
+            <div className="px-contact-row">
+              <Key href={`mailto:${profile.email}`} accent className="px-key-big">
+                Email me <Tri />
+              </Key>
+              <span className="px-email">{profile.email}</span>
+            </div>
+          </div>
+                  </section>
+                );
+            }
+          })}
         </main>
 
         <footer className="px-footer">

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { defaultGames } from "./defaults";
+import { DEFAULT_SECTION_ORDER, defaultGames } from "./defaults";
 
 /**
  * The whole site's editable content, stored as one JSON document.
@@ -19,6 +19,12 @@ export type DefaultMode = (typeof MODES)[number];
 export type SectionKey = (typeof SECTION_KEYS)[number];
 export type ImageKey = (typeof IMAGE_KEYS)[number];
 export type GameArt = (typeof GAME_ART)[number];
+
+/** Every section exactly once: repeats are dropped and missing ones go to the end. */
+export function fullSectionOrder(order: readonly SectionKey[]): SectionKey[] {
+  const seen = new Set(order);
+  return [...seen, ...DEFAULT_SECTION_ORDER.filter((key) => !seen.has(key))];
+}
 
 const text = (max: number) => z.string().trim().max(max);
 const required = (max: number) => text(max).min(1, "Can't be empty");
@@ -106,6 +112,12 @@ export const contentSchema = z.object({
     stack: z.boolean(),
     contact: z.boolean(),
   }),
+  /** Page order of the sections, set by dragging them in the admin. */
+  sectionOrder: z
+    .array(z.enum(SECTION_KEYS))
+    .max(SECTION_KEYS.length * 2)
+    .default(() => [...DEFAULT_SECTION_ORDER])
+    .transform(fullSectionOrder),
   profile: z.object({
     name: required(60),
     role: text(60),

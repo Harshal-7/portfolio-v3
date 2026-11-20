@@ -7,7 +7,6 @@ import {
   contentOf,
   contentSchema,
   issueText,
-  SECTION_KEYS,
   type DefaultMode,
   type Design,
   type GameArt,
@@ -35,6 +34,7 @@ import {
   Select,
   Text,
   Toggle,
+  useDragReorder,
   type IconName,
 } from "./admin-ui";
 import { clearDraft, publishDraft } from "./draft-channel";
@@ -44,13 +44,19 @@ import { SavePasswordDialog } from "./save-password-dialog";
 type Status = { kind: "ok" | "error"; text: string; issues?: string[] } | null;
 
 type TabId = "look" | "profile" | "work" | "experience" | "links";
-const TABS: { id: TabId; label: string; icon: IconName; keys: (keyof SiteContent)[] }[] = [
-  { id: "look", label: "Look", icon: "look", keys: ["design", "defaultMode", "sections"] },
-  { id: "profile", label: "Profile", icon: "profile", keys: ["profile", "pixel"] },
-  { id: "work", label: "Work", icon: "work", keys: ["projects", "earlier", "games"] },
-  { id: "experience", label: "Experience", icon: "experience", keys: ["experience", "stack"] },
-  { id: "links", label: "Links & resume", icon: "links", keys: ["links"] },
+const TABS: { id: TabId; label: string; hint: string; icon: IconName; keys: (keyof SiteContent)[] }[] = [
+  { id: "look", label: "Look", hint: "Design, theme and the order of the sections", icon: "look", keys: ["design", "defaultMode", "sections", "sectionOrder"] },
+  { id: "profile", label: "Profile", hint: "Name, intro and about", icon: "profile", keys: ["profile", "pixel"] },
+  { id: "work", label: "Work", hint: "Projects, side quests and games", icon: "work", keys: ["projects", "earlier", "games"] },
+  { id: "experience", label: "Experience", hint: "Jobs, school and your stack", icon: "experience", keys: ["experience", "stack"] },
+  { id: "links", label: "Links & resume", hint: "Buttons under the intro and the PDF", icon: "links", keys: ["links"] },
 ];
+
+/** Two columns of cards on wide screens; one column, left then right, on small ones. */
+const columns = "grid items-start gap-5 lg:grid-cols-2";
+const column = "flex min-w-0 flex-col gap-5";
+/** Shared width of the main area and the save bar on wide screens. */
+const wide = "lg:max-w-[1400px] lg:px-10";
 const tabOf = (key: PropertyKey): TabId => TABS.find((t) => t.keys.includes(key as keyof SiteContent))?.id ?? "look";
 
 const MODE_OPTIONS: { value: DefaultMode; label: string; icon: IconName }[] = [
@@ -65,7 +71,7 @@ const SECTIONS: Record<SectionKey, { label: string; note?: string }> = {
   games: { label: "Games", note: "Arcade in Pixel" },
   about: { label: "About" },
   experience: { label: "Experience" },
-  stack: { label: "Stack", note: "Inventory in Pixel" },
+  stack: { label: "Stack", note: "Inventory in Pixel. Right below About, it shows inside About" },
   contact: { label: "Say hi" },
 };
 
@@ -218,8 +224,70 @@ export function AdminPanel(props: {
   );
 
   return (
-    <div className="min-h-dvh pb-40">
-      <header className="mx-auto flex max-w-3xl flex-wrap items-end justify-between gap-3 px-4 pb-5 pt-8 sm:px-6">
+    <div className="min-h-dvh pb-40 lg:pb-28 lg:pl-64">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-line bg-surface lg:flex">
+        <div className="border-b border-line px-5 pb-5 pt-7">
+          <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-muted">
+            <span className="pp-light" data-status="ok" aria-hidden="true" />
+            /admin · signed in
+          </p>
+          <p className="mt-2 text-xl font-semibold tracking-tight">Site admin</p>
+          <p className="mt-0.5 text-xs text-muted">
+            Saved <LocalTime iso={saved.updatedAt} /> · v{saved.rev}
+          </p>
+        </div>
+        <nav aria-label="Admin sections" className="flex flex-1 flex-col gap-1 overflow-y-auto p-3">
+          {TABS.map((t) => {
+            const on = tab === t.id;
+            const changed = t.keys.some((k) => changedKeys.includes(k));
+            return (
+              <button
+                key={t.id}
+                type="button"
+                aria-current={on ? "page" : undefined}
+                onClick={() => setTab(t.id)}
+                className={`group flex items-start gap-3 rounded-xl px-3 py-2.5 text-left transition ${
+                  on ? "bg-bg shadow-sm ring-1 ring-line" : "hover:bg-surface2"
+                }`}
+              >
+                <span
+                  className={`mt-0.5 grid size-7 shrink-0 place-items-center rounded-lg transition ${
+                    on ? "bg-accent text-white" : "bg-surface2 text-muted group-hover:text-fg"
+                  }`}
+                >
+                  <Icon name={t.icon} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className={`flex items-center gap-2 text-sm font-medium ${on ? "text-fg" : "text-fg/80"}`}>
+                    {t.label}
+                    {changed && <span className="size-1.5 rounded-full bg-accent" aria-label="unsaved changes" />}
+                  </span>
+                  <span className="mt-0.5 block text-xs leading-snug text-muted">{t.hint}</span>
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+        <div className="flex items-center gap-2 border-t border-line p-3">
+          <a href="/" target="_blank" rel="noreferrer" className={`${ghostButton} flex-1`}>
+            <Icon name="external" />
+            View site
+          </a>
+          <form
+            action={async () => {
+              clearDraft();
+              await logout();
+              router.refresh();
+            }}
+          >
+            <button type="submit" className={ghostButton} aria-label="Sign out" title="Sign out">
+              <Icon name="logout" />
+            </button>
+          </form>
+        </div>
+      </aside>
+
+      <header className="mx-auto flex max-w-3xl flex-wrap items-end justify-between gap-3 px-4 pb-5 pt-8 sm:px-6 lg:hidden">
         <div>
           <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-muted">
             <span className="pp-light" data-status="ok" aria-hidden="true" />
@@ -249,7 +317,7 @@ export function AdminPanel(props: {
         </div>
       </header>
 
-      <nav aria-label="Admin sections" className="sticky top-0 z-20 border-b border-line bg-bg/85 backdrop-blur">
+      <nav aria-label="Admin sections" className="sticky top-0 z-20 border-b border-line bg-bg/85 backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-3xl gap-1 overflow-x-auto px-4 py-2 sm:px-6">
           {TABS.map((t) => {
             const on = tab === t.id;
@@ -273,7 +341,11 @@ export function AdminPanel(props: {
         </div>
       </nav>
 
-      <main className="mx-auto flex max-w-3xl flex-col gap-5 px-4 pt-6 sm:px-6">
+      <main className={`mx-auto flex max-w-3xl flex-col gap-5 px-4 pt-6 sm:px-6 lg:pt-9 ${wide}`}>
+        <div className="hidden lg:block">
+          <h2 className="text-2xl font-semibold tracking-tight">{TABS.find((t) => t.id === tab)?.label}</h2>
+          <p className="mt-1 text-sm text-muted">{TABS.find((t) => t.id === tab)?.hint}</p>
+        </div>
         {!props.storeReady && (
           <p className="rounded-xl border border-danger/40 bg-surface p-3 text-sm text-danger">
             Storage isn’t connected, so saving won’t work yet.
@@ -281,248 +353,263 @@ export function AdminPanel(props: {
         )}
 
         {tab === "look" && (
-          <>
-            <Card title="Design">
-              <div role="radiogroup" aria-label="Design" className="grid gap-3 sm:grid-cols-2">
-                <DesignOption value="notebook" current={draft.design} onSelect={(v) => set("design", v)} />
-                <DesignOption value="pixel" current={draft.design} onSelect={(v) => set("design", v)} />
-              </div>
-            </Card>
-            <Card title="Theme for new visitors">
-              <Segmented
-                label="Theme for new visitors"
-                value={draft.defaultMode}
-                options={MODE_OPTIONS}
-                onChange={(v) => set("defaultMode", v)}
-              />
-              <p className="text-xs text-muted">Anyone who presses the bulb keeps their own choice.</p>
-            </Card>
-            <Card title="Sections">
-              <div className="grid gap-2 sm:grid-cols-2">
-                {SECTION_KEYS.map((key) => (
-                  <Toggle
-                    key={key}
-                    label={SECTIONS[key].label}
-                    note={SECTIONS[key].note}
-                    checked={draft.sections[key]}
-                    onChange={(on) => set("sections", { ...draft.sections, [key]: on })}
-                  />
-                ))}
-              </div>
-            </Card>
-          </>
+          <div className={columns}>
+            <div className={column}>
+              <Card title="Design">
+                <div role="radiogroup" aria-label="Design" className="grid gap-3 sm:grid-cols-2">
+                  <DesignOption value="notebook" current={draft.design} onSelect={(v) => set("design", v)} />
+                  <DesignOption value="pixel" current={draft.design} onSelect={(v) => set("design", v)} />
+                </div>
+              </Card>
+              <Card title="Theme for new visitors">
+                <Segmented
+                  label="Theme for new visitors"
+                  value={draft.defaultMode}
+                  options={MODE_OPTIONS}
+                  onChange={(v) => set("defaultMode", v)}
+                />
+                <p className="text-xs text-muted">Anyone who presses the bulb keeps their own choice.</p>
+              </Card>
+            </div>
+            <div className={column}>
+              <Card title="Sections">
+                <SectionOrder
+                  order={draft.sectionOrder}
+                  on={draft.sections}
+                  onOrder={(order) => set("sectionOrder", order)}
+                  onToggle={(key, on) => set("sections", { ...draft.sections, [key]: on })}
+                />
+              </Card>
+            </div>
+          </div>
         )}
 
         {tab === "profile" && (
-          <>
-            <Card title="Basics">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Text label="Name" value={draft.profile.name} max={60} onChange={(v) => setProfile("name", v)} />
-                <Text label="Role" value={draft.profile.role} max={60} onChange={(v) => setProfile("role", v)} />
-              </div>
-              <Text label="Email" type="email" value={draft.profile.email} max={120} onChange={(v) => setProfile("email", v)} />
-            </Card>
-            {draft.design === "pixel" ? [pixelHero, notebookHero] : [notebookHero, pixelHero]}
-            <Card title="About & say hi">
-              <Area
-                label="About"
-                hint="Blank line starts a new paragraph"
-                rows={6}
-                value={draft.profile.about}
-                max={1200}
-                onChange={(v) => setProfile("about", v)}
-              />
-              <Area
-                label="Say hi"
-                rows={2}
-                value={draft.profile.contactLine}
-                max={200}
-                onChange={(v) => setProfile("contactLine", v)}
-              />
-            </Card>
-          </>
+          <div className={columns}>
+            <div className={column}>
+              <Card title="Basics">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Text label="Name" value={draft.profile.name} max={60} onChange={(v) => setProfile("name", v)} />
+                  <Text label="Role" value={draft.profile.role} max={60} onChange={(v) => setProfile("role", v)} />
+                </div>
+                <Text label="Email" type="email" value={draft.profile.email} max={120} onChange={(v) => setProfile("email", v)} />
+              </Card>
+              <Card title="About & say hi">
+                <Area
+                  label="About"
+                  hint="Blank line starts a new paragraph"
+                  rows={6}
+                  value={draft.profile.about}
+                  max={1200}
+                  onChange={(v) => setProfile("about", v)}
+                />
+                <Area
+                  label="Say hi"
+                  rows={2}
+                  value={draft.profile.contactLine}
+                  max={200}
+                  onChange={(v) => setProfile("contactLine", v)}
+                />
+              </Card>
+            </div>
+            <div className={column}>
+              {draft.design === "pixel" ? [pixelHero, notebookHero] : [notebookHero, pixelHero]}
+            </div>
+          </div>
         )}
 
         {tab === "work" && (
-          <>
-            <Card title="Projects" aside={<Count n={draft.projects.length} />}>
-              <ListEditor
-                items={draft.projects}
-                max={6}
-                noun="project"
-                blank={() => ({
-                  name: "",
-                  tag: "",
-                  one: "",
-                  stack: [],
-                  status: "Live",
-                  liveHref: "",
-                  codeHref: "",
-                  imageKey: "none" as const,
-                  brand: "#4f46e5",
-                  bezel: "#18181b",
-                })}
-                title={(p) => p.name}
-                subtitle={(p) => p.tag}
-                dot={(p) => p.brand}
-                onChange={(items) => set("projects", items)}
-                render={(p, patch) => (
-                  <>
-                    <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
-                      <Text label="Name" value={p.name} max={40} onChange={(v) => patch({ name: v })} />
-                      <Text label="Badge" placeholder="Live" value={p.status} max={16} onChange={(v) => patch({ status: v })} />
-                    </div>
-                    <Text label="Tagline" value={p.tag} max={80} onChange={(v) => patch({ tag: v })} />
-                    <Area label="Description" rows={2} value={p.one} max={400} onChange={(v) => patch({ one: v })} />
-                    <ListInput label="Stack" value={p.stack} onChange={(v) => patch({ stack: v })} />
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <Text label="Live link" placeholder="https://" value={p.liveHref} max={500} onChange={(v) => patch({ liveHref: v })} />
-                      <Text label="Source link" placeholder="https://github.com/…" value={p.codeHref} max={500} onChange={(v) => patch({ codeHref: v })} />
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-3">
-                      <Select label="Clip" value={p.imageKey} options={CLIP_OPTIONS} onChange={(v) => patch({ imageKey: v })} />
-                      <ColorInput label="Background" value={p.brand} onChange={(v) => patch({ brand: v })} />
-                      <ColorInput label="Phone frame" value={p.bezel} onChange={(v) => patch({ bezel: v })} />
-                    </div>
-                  </>
-                )}
-              />
-            </Card>
-            <Card title="Earlier work" aside={<Count n={draft.earlier.length} />}>
-              <ListEditor
-                items={draft.earlier}
-                max={10}
-                noun="item"
-                blank={() => ({ name: "", what: "", meta: "", href: "" })}
-                title={(e) => e.name}
-                subtitle={(e) => e.what}
-                onChange={(items) => set("earlier", items)}
-                render={(e, patch) => (
-                  <>
-                    <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
-                      <Text label="Name" value={e.name} max={60} onChange={(v) => patch({ name: v })} />
-                      <Text label="Note" placeholder="Freelance" value={e.meta} max={40} onChange={(v) => patch({ meta: v })} />
-                    </div>
-                    <Text label="What it is" value={e.what} max={200} onChange={(v) => patch({ what: v })} />
-                    <Text label="Link" placeholder="Optional" value={e.href} max={500} onChange={(v) => patch({ href: v })} />
-                  </>
-                )}
-              />
-            </Card>
-            <Card title="Games" aside={<Count n={draft.games.length} />}>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="min-w-0 flex-1 text-xs text-muted">
-                  The built-in list has every game with its link and picture. Using it replaces this list; Save to keep it.
-                </p>
-                <button type="button" className={ghostButton} onClick={() => set("games", defaultGames.map((g) => ({ ...g })))}>
-                  Use the built-in games
-                </button>
-              </div>
-              <ListEditor
-                items={draft.games}
-                max={6}
-                noun="game"
-                blank={() => ({ name: "", what: "", meta: "", href: "https://games.huhharshal.com/", art: "none" as const })}
-                title={(g) => g.name}
-                subtitle={(g) => g.what}
-                onChange={(items) => set("games", items)}
-                render={(g, patch) => (
-                  <>
-                    <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
-                      <Text label="Name" value={g.name} max={60} onChange={(v) => patch({ name: v })} />
-                      <Text label="Kind" placeholder="Puzzle" value={g.meta} max={40} onChange={(v) => patch({ meta: v })} />
-                    </div>
-                    <Text label="One line" value={g.what} max={200} onChange={(v) => patch({ what: v })} />
-                    <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
-                      <Text label="Link" value={g.href} max={500} onChange={(v) => patch({ href: v })} />
-                      <Select label="Picture" value={g.art} options={ART_OPTIONS} onChange={(v) => patch({ art: v })} />
-                    </div>
-                  </>
-                )}
-              />
-            </Card>
-          </>
+          <div className={columns}>
+            <div className={column}>
+              <Card title="Projects" aside={<Count n={draft.projects.length} />}>
+                <ListEditor
+                  items={draft.projects}
+                  max={6}
+                  noun="project"
+                  blank={() => ({
+                    name: "",
+                    tag: "",
+                    one: "",
+                    stack: [],
+                    status: "Live",
+                    liveHref: "",
+                    codeHref: "",
+                    imageKey: "none" as const,
+                    brand: "#4f46e5",
+                    bezel: "#18181b",
+                  })}
+                  title={(p) => p.name}
+                  subtitle={(p) => p.tag}
+                  dot={(p) => p.brand}
+                  onChange={(items) => set("projects", items)}
+                  render={(p, patch) => (
+                    <>
+                      <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+                        <Text label="Name" value={p.name} max={40} onChange={(v) => patch({ name: v })} />
+                        <Text label="Badge" placeholder="Live" value={p.status} max={16} onChange={(v) => patch({ status: v })} />
+                      </div>
+                      <Text label="Tagline" value={p.tag} max={80} onChange={(v) => patch({ tag: v })} />
+                      <Area label="Description" rows={2} value={p.one} max={400} onChange={(v) => patch({ one: v })} />
+                      <ListInput label="Stack" value={p.stack} onChange={(v) => patch({ stack: v })} />
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <Text label="Live link" placeholder="https://" value={p.liveHref} max={500} onChange={(v) => patch({ liveHref: v })} />
+                        <Text label="Source link" placeholder="https://github.com/…" value={p.codeHref} max={500} onChange={(v) => patch({ codeHref: v })} />
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-3">
+                        <Select label="Clip" value={p.imageKey} options={CLIP_OPTIONS} onChange={(v) => patch({ imageKey: v })} />
+                        <ColorInput label="Background" value={p.brand} onChange={(v) => patch({ brand: v })} />
+                        <ColorInput label="Phone frame" value={p.bezel} onChange={(v) => patch({ bezel: v })} />
+                      </div>
+                    </>
+                  )}
+                />
+              </Card>
+              <Card title="Games" aside={<Count n={draft.games.length} />}>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="min-w-0 flex-1 text-xs text-muted">
+                    The built-in list has every game with its link and picture. Using it replaces this list; Save to keep it.
+                  </p>
+                  <button type="button" className={ghostButton} onClick={() => set("games", defaultGames.map((g) => ({ ...g })))}>
+                    Use the built-in games
+                  </button>
+                </div>
+                <ListEditor
+                  items={draft.games}
+                  max={6}
+                  noun="game"
+                  blank={() => ({ name: "", what: "", meta: "", href: "https://games.huhharshal.com/", art: "none" as const })}
+                  title={(g) => g.name}
+                  subtitle={(g) => g.what}
+                  onChange={(items) => set("games", items)}
+                  render={(g, patch) => (
+                    <>
+                      <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+                        <Text label="Name" value={g.name} max={60} onChange={(v) => patch({ name: v })} />
+                        <Text label="Kind" placeholder="Puzzle" value={g.meta} max={40} onChange={(v) => patch({ meta: v })} />
+                      </div>
+                      <Text label="One line" value={g.what} max={200} onChange={(v) => patch({ what: v })} />
+                      <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+                        <Text label="Link" value={g.href} max={500} onChange={(v) => patch({ href: v })} />
+                        <Select label="Picture" value={g.art} options={ART_OPTIONS} onChange={(v) => patch({ art: v })} />
+                      </div>
+                    </>
+                  )}
+                />
+              </Card>
+            </div>
+            <div className={column}>
+              <Card title="Earlier work" aside={<Count n={draft.earlier.length} />}>
+                <ListEditor
+                  items={draft.earlier}
+                  max={10}
+                  noun="item"
+                  blank={() => ({ name: "", what: "", meta: "", href: "" })}
+                  title={(e) => e.name}
+                  subtitle={(e) => e.what}
+                  onChange={(items) => set("earlier", items)}
+                  render={(e, patch) => (
+                    <>
+                      <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+                        <Text label="Name" value={e.name} max={60} onChange={(v) => patch({ name: v })} />
+                        <Text label="Note" placeholder="Freelance" value={e.meta} max={40} onChange={(v) => patch({ meta: v })} />
+                      </div>
+                      <Text label="What it is" value={e.what} max={200} onChange={(v) => patch({ what: v })} />
+                      <Text label="Link" placeholder="Optional" value={e.href} max={500} onChange={(v) => patch({ href: v })} />
+                    </>
+                  )}
+                />
+              </Card>
+            </div>
+          </div>
         )}
 
         {tab === "experience" && (
-          <>
-            <Card title="Experience" aside={<Count n={draft.experience.length} />}>
-              <ListEditor
-                items={draft.experience}
-                max={10}
-                noun="role"
-                blank={() => ({ org: "", role: "", when: "", what: "" })}
-                title={(x) => x.org}
-                subtitle={(x) => [x.role, x.when].filter(Boolean).join(" · ")}
-                onChange={(items) => set("experience", items)}
-                render={(x, patch) => (
-                  <>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <Text label="Company or school" value={x.org} max={60} onChange={(v) => patch({ org: v })} />
-                      <Text label="Role" value={x.role} max={80} onChange={(v) => patch({ role: v })} />
+          <div className={columns}>
+            <div className={column}>
+              <Card title="Experience" aside={<Count n={draft.experience.length} />}>
+                <ListEditor
+                  items={draft.experience}
+                  max={10}
+                  noun="role"
+                  blank={() => ({ org: "", role: "", when: "", what: "" })}
+                  title={(x) => x.org}
+                  subtitle={(x) => [x.role, x.when].filter(Boolean).join(" · ")}
+                  onChange={(items) => set("experience", items)}
+                  render={(x, patch) => (
+                    <>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <Text label="Company or school" value={x.org} max={60} onChange={(v) => patch({ org: v })} />
+                        <Text label="Role" value={x.role} max={80} onChange={(v) => patch({ role: v })} />
+                      </div>
+                      <Text label="When" placeholder="Mar 2026 – now" value={x.when} max={40} onChange={(v) => patch({ when: v })} />
+                      <Area label="One line on the work" rows={2} value={x.what} max={300} onChange={(v) => patch({ what: v })} />
+                    </>
+                  )}
+                />
+              </Card>
+            </div>
+            <div className={column}>
+              <Card title="Stack" aside={<Count n={draft.stack.length} />}>
+                <ListEditor
+                  items={draft.stack}
+                  max={8}
+                  noun="row"
+                  blank={() => ({ k: "", v: "" })}
+                  title={(r) => r.k}
+                  subtitle={(r) => r.v}
+                  onChange={(items) => set("stack", items)}
+                  render={(r, patch) => (
+                    <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
+                      <Text label="Group" value={r.k} max={20} onChange={(v) => patch({ k: v })} />
+                      <Text label="Tools" value={r.v} max={160} onChange={(v) => patch({ v })} />
                     </div>
-                    <Text label="When" placeholder="Mar 2026 – now" value={x.when} max={40} onChange={(v) => patch({ when: v })} />
-                    <Area label="One line on the work" rows={2} value={x.what} max={300} onChange={(v) => patch({ what: v })} />
-                  </>
-                )}
-              />
-            </Card>
-            <Card title="Stack" aside={<Count n={draft.stack.length} />}>
-              <ListEditor
-                items={draft.stack}
-                max={8}
-                noun="row"
-                blank={() => ({ k: "", v: "" })}
-                title={(r) => r.k}
-                subtitle={(r) => r.v}
-                onChange={(items) => set("stack", items)}
-                render={(r, patch) => (
-                  <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
-                    <Text label="Group" value={r.k} max={20} onChange={(v) => patch({ k: v })} />
-                    <Text label="Tools" value={r.v} max={160} onChange={(v) => patch({ v })} />
-                  </div>
-                )}
-              />
-            </Card>
-          </>
+                  )}
+                />
+              </Card>
+            </div>
+          </div>
         )}
 
         {tab === "links" && (
-          <>
-            <Card title="Links" aside={<Count n={draft.links.length} />}>
-              <ListEditor
-                items={draft.links}
-                max={8}
-                noun="link"
-                blank={() => ({ label: "", href: "https://" })}
-                title={(l) => l.label}
-                subtitle={(l) => l.href}
-                onChange={(items) => set("links", items)}
-                render={(l, patch) => (
-                  <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
-                    <Text label="Label" value={l.label} max={30} onChange={(v) => patch({ label: v })} />
-                    <Text label="Link" hint="https://, mailto: or /resume" value={l.href} max={500} onChange={(v) => patch({ href: v })} />
-                  </div>
-                )}
+          <div className={columns}>
+            <div className={column}>
+              <Card title="Links" aside={<Count n={draft.links.length} />}>
+                <ListEditor
+                  items={draft.links}
+                  max={8}
+                  noun="link"
+                  blank={() => ({ label: "", href: "https://" })}
+                  title={(l) => l.label}
+                  subtitle={(l) => l.href}
+                  onChange={(items) => set("links", items)}
+                  render={(l, patch) => (
+                    <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
+                      <Text label="Label" value={l.label} max={30} onChange={(v) => patch({ label: v })} />
+                      <Text label="Link" hint="https://, mailto: or /resume" value={l.href} max={500} onChange={(v) => patch({ href: v })} />
+                    </div>
+                  )}
+                />
+              </Card>
+            </div>
+            <div className={column}>
+              <ResumeCard
+                resume={saved.resume}
+                rev={saved.rev}
+                blobReady={props.blobReady}
+                busy={pending}
+                onResult={(result, okText) => apply(result, okText, true)}
+                ensureUnlocked={ensureUnlocked}
+                onRemove={() => {
+                  if (!window.confirm("Remove the resume? /resume will show a “coming soon” note until you upload a new one.")) return;
+                  startTransition(async () => {
+                    const result = await runChange(() => removeResume(saved.rev));
+                    if (result) apply(result, "Resume removed.", true);
+                    else notSaved();
+                  });
+                }}
               />
-            </Card>
-            <ResumeCard
-              resume={saved.resume}
-              rev={saved.rev}
-              blobReady={props.blobReady}
-              busy={pending}
-              onResult={(result, okText) => apply(result, okText, true)}
-              ensureUnlocked={ensureUnlocked}
-              onRemove={() => {
-                if (!window.confirm("Remove the resume? /resume will show a “coming soon” note until you upload a new one.")) return;
-                startTransition(async () => {
-                  const result = await runChange(() => removeResume(saved.rev));
-                  if (result) apply(result, "Resume removed.", true);
-                  else notSaved();
-                });
-              }}
-            />
-          </>
+            </div>
+          </div>
         )}
       </main>
 
@@ -536,8 +623,8 @@ export function AdminPanel(props: {
         }}
       />
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/90 backdrop-blur">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 sm:px-6">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/90 backdrop-blur lg:left-64">
+        <div className={`mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 sm:px-6 ${wide}`}>
           <div className="min-w-0 basis-full text-sm sm:basis-auto sm:flex-1" aria-live="polite">
             {status ? (
               <div className={status.kind === "error" ? "text-danger" : "text-fg"}>
@@ -668,5 +755,43 @@ function PixelThumb() {
         </span>
       </span>
     </span>
+  );
+}
+
+/** The page's sections in order: drag to reorder, switch to show or hide. */
+function SectionOrder(props: {
+  order: SectionKey[];
+  on: Record<SectionKey, boolean>;
+  onOrder: (order: SectionKey[]) => void;
+  onToggle: (key: SectionKey, on: boolean) => void;
+}) {
+  const drag = useDragReorder(props.order.length, (from, to) => {
+    const next = [...props.order];
+    const [key] = next.splice(from, 1);
+    next.splice(to, 0, key);
+    props.onOrder(next);
+  });
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-xs text-muted">Top to bottom, as on the page, after the intro. Drag to change the order.</p>
+      <ol className="divide-y divide-line overflow-hidden rounded-xl border border-line">
+        {props.order.map((key, i) => (
+          <li
+            key={key}
+            ref={drag.rowRef(i)}
+            className={`flex items-stretch ${drag.dragging === i ? "relative z-10 bg-surface2 shadow-lg" : "bg-bg"}`}
+          >
+            {drag.handle(i, SECTIONS[key].label)}
+            <Toggle
+              label={SECTIONS[key].label}
+              note={SECTIONS[key].note}
+              checked={props.on[key]}
+              onChange={(on) => props.onToggle(key, on)}
+              className="flex min-w-0 flex-1 items-center justify-between gap-3 py-3 pl-1 pr-3.5 text-left transition hover:bg-surface2"
+            />
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }
