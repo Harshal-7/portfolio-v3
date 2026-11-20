@@ -58,6 +58,80 @@ export const QUESTION_SPRITE = [
   "..X..",
 ] as const;
 
+// Mafia's night town.
+
+/** A player asleep: the eyes are one closed slit. */
+export const SLEEPER_SPRITE = [
+  "..XXX..",
+  ".XXXXX.",
+  ".X...X.",
+  ".XXXXX.",
+  "..XXX..",
+  ".XXXXX.",
+  "XXXXXXX",
+  "XXXXXXX",
+] as const;
+
+/** 6 × 6 crescent, opening to the right. */
+export const MOON_SPRITE = ["..XXX.", ".XX...", "XX....", "XX....", ".XX...", "..XXX."] as const;
+
+/** 3 × 3 "z" rising off a sleeper. */
+export const Z_SPRITE = ["XXX", ".X.", "XXX"] as const;
+
+/** The top of the sun at dawn, 7 × 3. */
+export const SUN_SPRITE = ["..XXX..", ".XXXXX.", "XXXXXXX"] as const;
+
+/** A low house (11 wide) and a tall one (12 wide); roofs on top, walls to the ground. */
+export const HOUSE_LOW = ["....XXX....", "..XXXXXXX..", "XXXXXXXXXXX", ...Array<string>(8).fill("XXXXXXXXXXX")];
+export const HOUSE_TALL = ["....XXXX....", "..XXXXXXXX..", "XXXXXXXXXXXX", ...Array<string>(13).fill("XXXXXXXXXXXX")];
+
+// Patakha's firecracker, 7 × 13: red body, marigold cap and bands, a lighter edge.
+
+export const CRACKER_BODY = [
+  ".......",
+  ".......",
+  "XXXXXXX",
+  "XXXXXXX",
+  ".......",
+  "XXXXXXX",
+  "XXXXXXX",
+  "XXXXXXX",
+  ".......",
+  "XXXXXXX",
+  "XXXXXXX",
+  "XXXXXXX",
+  ".XXXXX.",
+] as const;
+export const CRACKER_BANDS = [
+  "..XXX..",
+  ".XXXXX.",
+  ".......",
+  ".......",
+  "XXXXXXX",
+  ".......",
+  ".......",
+  ".......",
+  "XXXXXXX",
+] as const;
+export const CRACKER_SHINE = [".......", ".......", ".X.....", ".X.....", ".......", ".X.....", ".X.....", ".X....."] as const;
+
+/** The lit spark, two flicker frames. */
+export const SPARK_PLUS = [".X.", "XXX", ".X."] as const;
+export const SPARK_CROSS = ["X.X", ".X.", "X.X"] as const;
+
+/** Pixels on a ring of radius r around (cx, cy), n of them evenly spaced. */
+export function ringCells(cx: number, cy: number, r: number, n: number, turn = 0): [number, number][] {
+  return Array.from({ length: n }, (_, k) => {
+    const a = ((k + turn) / n) * Math.PI * 2;
+    return [Math.round(cx + r * Math.cos(a)), Math.round(cy + r * Math.sin(a))] as [number, number];
+  });
+}
+
+/** One SVG path with a 1 × 1 square per cell. */
+export function cellsPath(cells: [number, number][]): string {
+  return cells.map(([x, y]) => `M${x} ${y}h1v1h-1z`).join("");
+}
+
 // The archer beside the Arcade heading: 8 wide, 10 tall, facing right.
 
 /** A pointed hat with a brim, drawn in green. */
@@ -108,7 +182,5 @@ export function litCells(rows: readonly string[]): [number, number][] {
 
 /** One SVG path for a sprite at (ox, oy): a 1 × 1 square per lit cell. */
 export function spritePath(rows: readonly string[], ox = 0, oy = 0): string {
-  return litCells(rows)
-    .map(([x, y]) => `M${ox + x} ${oy + y}h1v1h-1z`)
-    .join("");
+  return cellsPath(litCells(rows).map(([x, y]) => [ox + x, oy + y]));
 }

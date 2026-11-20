@@ -12,7 +12,7 @@ export const DESIGNS = ["notebook", "pixel"] as const;
 export const MODES = ["system", "light", "dark"] as const;
 export const SECTION_KEYS = ["projects", "earlier", "games", "about", "experience", "stack", "contact"] as const;
 export const IMAGE_KEYS = ["evenor", "life-vault", "none"] as const;
-export const GAME_ART = ["knight", "imposter", "none"] as const;
+export const GAME_ART = ["knight", "imposter", "mafia", "patakha", "none"] as const;
 
 export type Design = (typeof DESIGNS)[number];
 export type DefaultMode = (typeof MODES)[number];

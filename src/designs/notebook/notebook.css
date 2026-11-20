@@ -715,7 +715,7 @@ html:not([data-mode="dark"]) .nb-filament {
   stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: 1;
+  stroke-dasharray: 1 2;
 }
 .nb-art-start {
   fill: var(--surface2);
@@ -744,7 +744,7 @@ html:not([data-mode="dark"]) .nb-filament {
   stroke: var(--muted);
   stroke-width: 1.6;
   stroke-linecap: round;
-  stroke-dasharray: 1;
+  stroke-dasharray: 1 2;
 }
 .nb-art-q {
   fill: var(--accent);
@@ -769,17 +769,18 @@ html:not([data-mode="dark"]) .nb-filament {
 .nb-art-imposter {
   animation: nbWobble 5s 0.8s ease-in-out infinite both;
 }
-/* Draw (to 30%), hold, then the line slides off from the start. */
+/* Draw (to 30%), hold, then the line slides off from the start. Dashes are
+   "1 2" and hidden states sit at ±1.01, so no zero-length dash leaves a dot. */
 @keyframes nbRoute {
   0% {
-    stroke-dashoffset: 1;
+    stroke-dashoffset: 1.01;
   }
   30%,
   82% {
     stroke-dashoffset: 0;
   }
   100% {
-    stroke-dashoffset: -1;
+    stroke-dashoffset: -1.01;
   }
 }
 @keyframes nbKnight {
@@ -801,14 +802,14 @@ html:not([data-mode="dark"]) .nb-filament {
 }
 @keyframes nbWords {
   0% {
-    stroke-dashoffset: 1;
+    stroke-dashoffset: 1.01;
   }
   20%,
   85% {
     stroke-dashoffset: 0;
   }
   100% {
-    stroke-dashoffset: -1;
+    stroke-dashoffset: -1.01;
   }
 }
 @keyframes nbWobble {
@@ -829,4 +830,201 @@ html:not([data-mode="dark"]) .nb-filament {
   24% {
     transform: rotate(2deg);
   }
+}
+
+/* Patakha (6 s): the spark glows at the fuse's tip, the fuse burns down from
+   the tip (12–55%), rays burst from the top of the cracker, and the pen draws
+   a new fuse. Mafia: z's drift up off the sleepers; the eyes in the window
+   open, blink, look around and close (5 s). */
+.nb-art-band {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+.nb-art-fuse {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-dasharray: 1 2;
+}
+.nb-art-spark,
+.nb-art-ray {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.nb-art-spark {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.nb-art-ray {
+  stroke-dasharray: 1 2;
+}
+.nb-art-cracker {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+.nb-art-eyes {
+  fill: var(--accent);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.nb-art-z {
+  fill: var(--muted);
+  font-family: var(--nb-head);
+  font-style: italic;
+  font-size: 9px;
+}
+.nb-art-fuse {
+  animation: nbFuse 6s ease-in-out infinite both;
+}
+.nb-art-spark {
+  animation: nbSpark 6s ease-in-out infinite both;
+}
+.nb-art-ray {
+  animation: nbRays 6s ease-out infinite both;
+}
+.nb-art-cracker {
+  animation: nbJolt 6s ease-in-out infinite both;
+}
+.nb-art-z {
+  animation: nbZ 2.7s ease-out infinite both;
+}
+.nb-art-eyes {
+  animation: nbEyes 5s ease-in-out infinite both;
+}
+@keyframes nbFuse {
+  0%,
+  12% {
+    stroke-dashoffset: 0;
+  }
+  55%,
+  88% {
+    stroke-dashoffset: 1.01;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes nbSpark {
+  0% {
+    opacity: 1;
+    transform: scale(0.8);
+  }
+  6% {
+    transform: scale(1.15);
+  }
+  12% {
+    opacity: 1;
+    transform: scale(0.9);
+  }
+  16%,
+  96% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(0.8);
+  }
+}
+@keyframes nbRays {
+  0%,
+  55% {
+    stroke-dashoffset: 1.01;
+    opacity: 1;
+  }
+  63%,
+  80% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  90%,
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+@keyframes nbJolt {
+  0%,
+  54%,
+  64%,
+  100% {
+    transform: none;
+  }
+  57% {
+    transform: rotate(-4deg);
+  }
+  60% {
+    transform: rotate(3deg);
+  }
+}
+@keyframes nbZ {
+  0% {
+    opacity: 0;
+    transform: none;
+  }
+  25% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.8;
+    transform: translate(2px, -6px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(3px, -8px);
+  }
+}
+@keyframes nbEyes {
+  0%,
+  20% {
+    opacity: 0;
+    transform: none;
+  }
+  28% {
+    opacity: 1;
+    transform: none;
+  }
+  46% {
+    transform: none;
+  }
+  48% {
+    transform: scaleY(0.15);
+  }
+  50% {
+    transform: none;
+  }
+  60% {
+    transform: translateX(-1.5px);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(1.5px);
+  }
+  80%,
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+/* "More games at …" under the game tiles. */
+.nb-site .nb-more {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 14px;
+  text-decoration: none;
+}
+.nb-site .nb-more:hover {
+  color: var(--fg);
+}
+.nb-site .nb-more:hover .nb-arrow {
+  animation: none;
+  transform: translate(3px, -3px);
+  color: var(--link);
 }

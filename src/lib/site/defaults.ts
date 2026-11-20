@@ -1,20 +1,34 @@
 import type { Game, SiteDoc } from "./schema";
 
-/** Small browser games, played on the separate games site. */
+/** Small browser games, played on the separate games site. The badge is who plays. */
 export const defaultGames: Game[] = [
   {
     name: "Knight’s Tour",
     what: "Move a chess knight to every square exactly once, on boards from 5×5 to 8×8.",
-    meta: "Puzzle",
+    meta: "1 player",
     href: "https://games.huhharshal.com/knights-tour",
     art: "knight",
   },
   {
     name: "Imposter",
     what: "Pass one phone around. Everyone gets the secret word except the imposter, who has to fake it.",
-    meta: "Party game",
+    meta: "3–20 players",
     href: "https://games.huhharshal.com/imposter",
     art: "imposter",
+  },
+  {
+    name: "Mafia",
+    what: "The phone narrates the night, so nobody sits out. Find the Mafia before they take over the town.",
+    meta: "5–15 players",
+    href: "https://games.huhharshal.com/mafia",
+    art: "mafia",
+  },
+  {
+    name: "Patakha",
+    what: "Say an answer and pass the phone on before the hidden fuse runs out, or lose a life.",
+    meta: "3–20 players",
+    href: "https://games.huhharshal.com/patakha",
+    art: "patakha",
   },
 ];
 

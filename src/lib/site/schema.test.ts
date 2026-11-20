@@ -73,6 +73,11 @@ describe("site schema", () => {
     expect(parsed.games).not.toBe(defaultSite.games);
   });
 
+  it("ships the four games, all on the games site, each with its picture", () => {
+    expect(defaultSite.games.map((g) => g.art)).toEqual(["knight", "imposter", "mafia", "patakha"]);
+    for (const g of defaultSite.games) expect(g.href.startsWith("https://games.huhharshal.com/")).toBe(true);
+  });
+
   it("gives a game without a picture no art", () => {
     const { art: _art, ...game } = defaultSite.games[0];
     expect(siteSchema.parse({ ...defaultSite, games: [game] }).games[0].art).toBe("none");

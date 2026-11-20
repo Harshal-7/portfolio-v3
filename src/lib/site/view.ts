@@ -77,6 +77,20 @@ export const PROJECT_MEDIA = {
   },
 } as const;
 
+/** The games site the game links point to, for the "More games at …" link. */
+export function gamesSite(games: { href: string }[]): { href: string; host: string } | null {
+  for (const g of games) {
+    if (!g.href.startsWith("https://")) continue;
+    try {
+      const url = new URL(g.href);
+      return { href: `${url.origin}/`, host: url.host };
+    } catch {
+      // try the next one
+    }
+  }
+  return null;
+}
+
 /** "A /// B /// C ///" → ["A", "B", "C"]: the ticker's separate phrases. */
 export function splitTicker(text: string): string[] {
   const parts = text
