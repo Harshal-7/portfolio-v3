@@ -1004,10 +1004,8 @@ html[data-mode="dark"] .px-site .px-shoot {
   }
 }
 
-/* Arcade: small game cards, each with a little screen. The screen keeps the
-   same dark colours in both themes, like an arcade cabinet. Its animations
-   wait on the first frame until the card is hovered or focused; touch screens
-   can't hover, so there they always play. */
+/* Arcade: small game cards, each with a little screen that keeps playing. The
+   screen keeps the same dark colours in both themes, like an arcade cabinet. */
 .px-games {
   display: flex;
   flex-wrap: wrap;
@@ -1115,18 +1113,6 @@ html[data-mode="dark"] .px-site .px-shoot {
 }
 .ps-imposter {
   animation: psFidget steps(1, end) infinite both;
-}
-.px-game .px-anim {
-  animation-play-state: paused;
-}
-.px-game:hover .px-anim,
-.px-game:focus-visible .px-anim {
-  animation-play-state: running;
-}
-@media (hover: none) {
-  .px-game .px-anim {
-    animation-play-state: running;
-  }
 }
 
 /* Each square owns a tenth of the loop: the knight sits, crouches, and is gone. */

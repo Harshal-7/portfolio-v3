@@ -62,8 +62,10 @@ export function LoopVideo(props: {
       playsInline
       preload="none"
     >
-      <source src={props.webm} type="video/webm" />
+      {/* MP4 first: Chrome on macOS sometimes fails to decode a cached WebM
+          and the clip sits on its poster. WebM stays as a fallback. */}
       <source src={props.mp4} type="video/mp4" />
+      <source src={props.webm} type="video/webm" />
     </video>
   );
 }

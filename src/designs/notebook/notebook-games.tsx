@@ -75,7 +75,7 @@ function ImposterDrawing() {
 
 const DRAWINGS = { knight: KnightDrawing, imposter: ImposterDrawing } as const;
 
-/** Notebook's game cards: small tiles with a pen drawing that redraws on hover. */
+/** Notebook's game cards: small tiles with a pen drawing that keeps redrawing. */
 export function NotebookGames({ games }: { games: Game[] }) {
   return (
     <div className="nb-games">

@@ -37,7 +37,7 @@ const CARD_SECONDS = 6;
 
 /**
  * Square i's part of the loop. Negative delays start each square mid-loop, so
- * a paused screen shows the knight on its first square, not on all of them.
+ * from the very first frame only one knight shows.
  */
 function hopTiming(i: number): CSSProperties {
   const delay = i === 0 ? 0 : i * HOP - KNIGHT_SECONDS;
@@ -66,13 +66,13 @@ function KnightScreen() {
           y={r * SQ + 1}
           width={SQ - 2}
           height={SQ - 2}
-          className="ps-trail px-anim"
+          className="ps-trail"
           style={hopTiming(i)}
         />
       ))}
       <g>
         {KNIGHT_LOOP.map(([c, r], i) => (
-          <path key={i} d={spritePath(KNIGHT_SPRITE, c * SQ + 1, r * SQ + 1)} className="ps-knight px-anim" style={hopTiming(i)} />
+          <path key={i} d={spritePath(KNIGHT_SPRITE, c * SQ + 1, r * SQ + 1)} className="ps-knight" style={hopTiming(i)} />
         ))}
       </g>
     </svg>
@@ -93,12 +93,12 @@ function ImposterScreen() {
         const odd = i === IMPOSTER;
         return (
           <g key={i}>
-            <g className="ps-card px-anim" style={cardTiming(i)}>
-              <g className="ps-back px-anim" style={cardTiming(i)}>
+            <g className="ps-card" style={cardTiming(i)}>
+              <g className="ps-back" style={cardTiming(i)}>
                 <rect x={x} y={y} width={7} height={8} className="ps-back-edge" />
                 <rect x={x + 1} y={y + 1} width={5} height={6} className="ps-back-fill" />
               </g>
-              <g className="ps-face px-anim" style={cardTiming(i)}>
+              <g className="ps-face" style={cardTiming(i)}>
                 <rect x={x} y={y} width={7} height={8} className="ps-face-bg" />
                 {odd ? (
                   <path d={spritePath(QUESTION_SPRITE, x + 1, y + 1)} className="ps-q" />
@@ -109,7 +109,7 @@ function ImposterScreen() {
             </g>
             <path
               d={spritePath(PLAYER_SPRITE, x, 15)}
-              className={odd ? "ps-player ps-imposter px-anim" : "ps-player"}
+              className={odd ? "ps-player ps-imposter" : "ps-player"}
               style={odd ? cardTiming(i) : undefined}
             />
           </g>
@@ -160,8 +160,7 @@ export function ArcadeArcher() {
 
 /**
  * Pixel's game cards: smaller than the project cards, each with a little
- * arcade screen. The screen plays while the card is hovered or focused, and
- * all the time on touch screens.
+ * arcade screen that plays all the time.
  */
 export function PixelGames({ games }: { games: Game[] }) {
   return (
