@@ -1,8 +1,40 @@
 import type { SectionKey, SiteDoc, SiteLink } from "./schema";
 
-/** Sections the admin switched on, in page order. */
+/** Sections the admin switched on. */
 export function visibleSections(doc: Pick<SiteDoc, "sections">): Set<SectionKey> {
   return new Set((Object.keys(doc.sections) as SectionKey[]).filter((key) => doc.sections[key]));
+}
+
+/** Sections that are switched on and have something to show. */
+export function presentSections(site: SiteDoc): Set<SectionKey> {
+  const filled: Record<SectionKey, boolean> = {
+    projects: site.projects.length > 0,
+    earlier: site.earlier.length > 0,
+    games: site.games.length > 0,
+    about: site.profile.about.trim().length > 0,
+    experience: site.experience.length > 0,
+    stack: site.stack.length > 0,
+    contact: true,
+  };
+  return new Set([...visibleSections(site)].filter((key) => filled[key]));
+}
+
+export type PageSection = { key: SectionKey; stackInside: boolean };
+
+/**
+ * The sections to draw, in the admin's order, given the ones that are switched
+ * on and have something to show. When Stack comes right after About, it is drawn
+ * inside About as a small sub-heading instead of a section of its own.
+ */
+export function pageSections(order: readonly SectionKey[], present: ReadonlySet<SectionKey>): PageSection[] {
+  const keys = order.filter((key) => present.has(key));
+  const out: PageSection[] = [];
+  for (let i = 0; i < keys.length; i++) {
+    const stackInside = keys[i] === "about" && keys[i + 1] === "stack";
+    out.push({ key: keys[i], stackInside });
+    if (stackInside) i++;
+  }
+  return out;
 }
 
 export type TextPart = { text: string; anchor?: boolean };

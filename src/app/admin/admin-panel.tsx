@@ -7,7 +7,6 @@ import {
   contentOf,
   contentSchema,
   issueText,
-  SECTION_KEYS,
   type DefaultMode,
   type Design,
   type GameArt,
@@ -35,6 +34,7 @@ import {
   Select,
   Text,
   Toggle,
+  useDragReorder,
   type IconName,
 } from "./admin-ui";
 import { clearDraft, publishDraft } from "./draft-channel";
@@ -45,7 +45,7 @@ type Status = { kind: "ok" | "error"; text: string; issues?: string[] } | null;
 
 type TabId = "look" | "profile" | "work" | "experience" | "links";
 const TABS: { id: TabId; label: string; icon: IconName; keys: (keyof SiteContent)[] }[] = [
-  { id: "look", label: "Look", icon: "look", keys: ["design", "defaultMode", "sections"] },
+  { id: "look", label: "Look", icon: "look", keys: ["design", "defaultMode", "sections", "sectionOrder"] },
   { id: "profile", label: "Profile", icon: "profile", keys: ["profile", "pixel"] },
   { id: "work", label: "Work", icon: "work", keys: ["projects", "earlier", "games"] },
   { id: "experience", label: "Experience", icon: "experience", keys: ["experience", "stack"] },
@@ -65,7 +65,7 @@ const SECTIONS: Record<SectionKey, { label: string; note?: string }> = {
   games: { label: "Games", note: "Arcade in Pixel" },
   about: { label: "About" },
   experience: { label: "Experience" },
-  stack: { label: "Stack", note: "Inventory in Pixel" },
+  stack: { label: "Stack", note: "Inventory in Pixel. Right below About, it shows inside About" },
   contact: { label: "Say hi" },
 };
 
@@ -298,17 +298,12 @@ export function AdminPanel(props: {
               <p className="text-xs text-muted">Anyone who presses the bulb keeps their own choice.</p>
             </Card>
             <Card title="Sections">
-              <div className="grid gap-2 sm:grid-cols-2">
-                {SECTION_KEYS.map((key) => (
-                  <Toggle
-                    key={key}
-                    label={SECTIONS[key].label}
-                    note={SECTIONS[key].note}
-                    checked={draft.sections[key]}
-                    onChange={(on) => set("sections", { ...draft.sections, [key]: on })}
-                  />
-                ))}
-              </div>
+              <SectionOrder
+                order={draft.sectionOrder}
+                on={draft.sections}
+                onOrder={(order) => set("sectionOrder", order)}
+                onToggle={(key, on) => set("sections", { ...draft.sections, [key]: on })}
+              />
             </Card>
           </>
         )}
@@ -668,5 +663,43 @@ function PixelThumb() {
         </span>
       </span>
     </span>
+  );
+}
+
+/** The page's sections in order: drag to reorder, switch to show or hide. */
+function SectionOrder(props: {
+  order: SectionKey[];
+  on: Record<SectionKey, boolean>;
+  onOrder: (order: SectionKey[]) => void;
+  onToggle: (key: SectionKey, on: boolean) => void;
+}) {
+  const drag = useDragReorder(props.order.length, (from, to) => {
+    const next = [...props.order];
+    const [key] = next.splice(from, 1);
+    next.splice(to, 0, key);
+    props.onOrder(next);
+  });
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-xs text-muted">Top to bottom, as on the page, after the intro. Drag to change the order.</p>
+      <ol className="divide-y divide-line overflow-hidden rounded-xl border border-line">
+        {props.order.map((key, i) => (
+          <li
+            key={key}
+            ref={drag.rowRef(i)}
+            className={`flex items-stretch ${drag.dragging === i ? "relative z-10 bg-surface2 shadow-lg" : "bg-bg"}`}
+          >
+            {drag.handle(i, SECTIONS[key].label)}
+            <Toggle
+              label={SECTIONS[key].label}
+              note={SECTIONS[key].note}
+              checked={props.on[key]}
+              onChange={(on) => props.onToggle(key, on)}
+              className="flex min-w-0 flex-1 items-center justify-between gap-3 py-3 pl-1 pr-3.5 text-left transition hover:bg-surface2"
+            />
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }
