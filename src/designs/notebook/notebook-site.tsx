@@ -3,6 +3,7 @@ import { findLink, newTab, visibleSections } from "@/lib/site/view";
 
 import { LineIcon, linkKind } from "../shared/link-icons";
 import { footerText, NowLine, Paragraphs, ProjectMedia, type Labels } from "../shared/parts";
+import { NotebookGames } from "./notebook-games";
 import { PullCordBulb } from "./pull-cord-bulb";
 
 import "./notebook.css";
@@ -26,7 +27,7 @@ function initials(name: string): string {
     .join("");
 }
 
-/** Earlier work and games: a name, a short line, and a link. */
+/** Earlier work: a name, a short line, and a link. */
 function LinkList({ items }: { items: ListItem[] }) {
   return (
     <ul className="nb-list">
@@ -170,7 +171,7 @@ export function NotebookSite({ site }: { site: SiteDoc }) {
           {showGames && (
             <section id="games" aria-label={LABELS.games}>
               <h2 className="nb-h2">{LABELS.games}</h2>
-              <LinkList items={site.games} />
+              <NotebookGames games={site.games} />
             </section>
           )}
 

@@ -12,11 +12,13 @@ export const DESIGNS = ["notebook", "pixel"] as const;
 export const MODES = ["system", "light", "dark"] as const;
 export const SECTION_KEYS = ["projects", "earlier", "games", "about", "experience", "stack", "contact"] as const;
 export const IMAGE_KEYS = ["evenor", "life-vault", "none"] as const;
+export const GAME_ART = ["knight", "imposter", "none"] as const;
 
 export type Design = (typeof DESIGNS)[number];
 export type DefaultMode = (typeof MODES)[number];
 export type SectionKey = (typeof SECTION_KEYS)[number];
 export type ImageKey = (typeof IMAGE_KEYS)[number];
+export type GameArt = (typeof GAME_ART)[number];
 
 const text = (max: number) => z.string().trim().max(max);
 const required = (max: number) => text(max).min(1, "Can't be empty");
@@ -59,12 +61,16 @@ export const projectSchema = z.object({
   bezel: hex,
 });
 
-/** A row in a plain list: earlier work, and the games. */
 export const earlierSchema = z.object({
   name: required(60),
   what: text(200),
   meta: text(40),
   href: optionalHref,
+});
+
+/** A game card: a list row plus the little animated picture it shows. */
+export const gameSchema = earlierSchema.extend({
+  art: z.enum(GAME_ART).default("none"),
 });
 
 export const experienceSchema = z.object({
@@ -114,7 +120,7 @@ export const contentSchema = z.object({
   projects: z.array(projectSchema).max(6),
   earlier: z.array(earlierSchema).max(10),
   /** Older saved documents have no games yet; they get the built-in list. */
-  games: z.array(earlierSchema).max(6).default(() => defaultGames.map((g) => ({ ...g }))),
+  games: z.array(gameSchema).max(6).default(() => defaultGames.map((g) => ({ ...g }))),
   experience: z.array(experienceSchema).max(10),
   stack: z.array(stackRowSchema).max(8),
   pixel: z.object({
@@ -136,6 +142,7 @@ export type SiteContent = z.infer<typeof contentSchema>;
 export type SiteDoc = z.infer<typeof siteSchema>;
 export type Project = z.infer<typeof projectSchema>;
 export type ListItem = z.infer<typeof earlierSchema>;
+export type Game = z.infer<typeof gameSchema>;
 export type SiteLink = z.infer<typeof linkSchema>;
 export type Resume = z.infer<typeof resumeSchema>;
 

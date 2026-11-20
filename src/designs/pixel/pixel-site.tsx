@@ -6,6 +6,7 @@ import { newTab, splitLead, visibleSections } from "@/lib/site/view";
 import { linkKind, PixelIcon } from "../shared/link-icons";
 import { footerText, Paragraphs, ProjectMedia, type Labels } from "../shared/parts";
 import { PixelBoard } from "./pixel-board";
+import { ArcadeHud, PixelGames } from "./pixel-games";
 import { PixelBulb } from "./pixel-bulb";
 
 import "./pixel.css";
@@ -64,11 +65,12 @@ function PoppingText({ text }: { text: string }) {
   );
 }
 
-function Heading({ id, label }: { id?: string; label: string }) {
+function Heading({ id, label, aside }: { id?: string; label: string; aside?: ReactNode }) {
   return (
     <div className="px-h2row" id={id}>
       <span aria-hidden="true" className="px-bullet" />
       <h2 className="px-h2">{label}</h2>
+      {aside}
     </div>
   );
 }
@@ -85,7 +87,7 @@ function Key({ href, children, accent, className }: { href: string; children: Re
 
 const Tri = () => <span aria-hidden="true" className="px-tri" />;
 
-/** Earlier work and games: a name, a short line, and a link. */
+/** Side quests: a name, a short line, and a link. */
 function LinkList({ items }: { items: ListItem[] }) {
   return (
     <ul className="px-list">
@@ -265,8 +267,8 @@ export function PixelSite({ site }: { site: SiteDoc }) {
 
           {showGames && (
             <section aria-label={LABELS.games}>
-              <Heading id="games" label={LABELS.games} />
-              <LinkList items={site.games} />
+              <Heading id="games" label={LABELS.games} aside={<ArcadeHud />} />
+              <PixelGames games={site.games} />
             </section>
           )}
 

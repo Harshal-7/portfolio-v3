@@ -10,6 +10,7 @@ import {
   SECTION_KEYS,
   type DefaultMode,
   type Design,
+  type GameArt,
   type ImageKey,
   type SectionKey,
   type SiteContent,
@@ -69,6 +70,12 @@ const SECTIONS: Record<SectionKey, { label: string; note?: string }> = {
 const CLIP_OPTIONS: { value: ImageKey; label: string }[] = [
   { value: "evenor", label: "Evenor clip" },
   { value: "life-vault", label: "Life Vault clip" },
+  { value: "none", label: "None" },
+];
+
+const ART_OPTIONS: { value: GameArt; label: string }[] = [
+  { value: "knight", label: "Knight on a board" },
+  { value: "imposter", label: "Imposter players" },
   { value: "none", label: "None" },
 ];
 
@@ -403,7 +410,7 @@ export function AdminPanel(props: {
                 items={draft.games}
                 max={6}
                 noun="game"
-                blank={() => ({ name: "", what: "", meta: "", href: "https://games-eight-rho.vercel.app/" })}
+                blank={() => ({ name: "", what: "", meta: "", href: "https://games-eight-rho.vercel.app/", art: "none" as const })}
                 title={(g) => g.name}
                 subtitle={(g) => g.what}
                 onChange={(items) => set("games", items)}
@@ -414,7 +421,10 @@ export function AdminPanel(props: {
                       <Text label="Kind" placeholder="Puzzle" value={g.meta} max={40} onChange={(v) => patch({ meta: v })} />
                     </div>
                     <Text label="One line" value={g.what} max={200} onChange={(v) => patch({ what: v })} />
-                    <Text label="Link" value={g.href} max={500} onChange={(v) => patch({ href: v })} />
+                    <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+                      <Text label="Link" value={g.href} max={500} onChange={(v) => patch({ href: v })} />
+                      <Select label="Picture" value={g.art} options={ART_OPTIONS} onChange={(v) => patch({ art: v })} />
+                    </div>
                   </>
                 )}
               />

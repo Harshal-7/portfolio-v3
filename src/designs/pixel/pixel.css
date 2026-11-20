@@ -810,3 +810,307 @@ html[data-mode="dark"] .px-site .px-shoot {
     display: none;
   }
 }
+
+/* Arcade: small game cards, each with a little screen. The screen keeps the
+   same dark colours in both themes, like an arcade cabinet. Its animations
+   wait on the first frame until the card is hovered or focused; touch screens
+   can't hover, so there they always play. */
+.px-hud {
+  align-self: center;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.px-hearts {
+  display: block;
+  width: 46px;
+  height: auto;
+  fill: var(--spark4);
+  shape-rendering: crispEdges;
+}
+.px-start {
+  font-family: var(--px-dot);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  animation: pxBlink 1.1s steps(1) infinite;
+}
+@media (max-width: 440px) {
+  .px-hearts {
+    display: none;
+  }
+}
+
+.px-games {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px 22px;
+  padding: 4px 10px 10px 4px;
+}
+.px-site .px-game {
+  flex: 1 1 250px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  color: var(--fg);
+  text-decoration: none;
+  box-shadow:
+    var(--px-frame),
+    7px 7px 0 0 var(--accent-soft);
+}
+.px-screen {
+  position: relative;
+  padding: 14px 16px;
+  background: #111114;
+  border-bottom: 3px solid var(--fg);
+}
+/* Faint scan lines. */
+.px-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.04) 0 1px, transparent 1px 3px);
+}
+.ps-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  shape-rendering: crispEdges;
+}
+.px-site .px-screen * {
+  transition: none;
+}
+.ps-sq-a {
+  fill: #1e1e24;
+}
+.ps-sq-b {
+  fill: #31313a;
+}
+.ps-ground {
+  fill: #31313a;
+}
+.ps-knight,
+.ps-player {
+  fill: #ececee;
+}
+.ps-trail {
+  fill: #a5b4fc;
+  opacity: 0;
+}
+.ps-back-edge {
+  fill: #a5b4fc;
+}
+.ps-back-fill {
+  fill: #4338ca;
+}
+.ps-face-bg {
+  fill: #ececee;
+}
+.ps-word {
+  fill: #52525b;
+}
+.ps-q {
+  fill: #4f46e5;
+}
+
+/* Without motion (or before the first frame) the knight waits on its first
+   square and the cards lie face up, so the picture still tells the game. */
+.ps-knight {
+  opacity: 0;
+}
+.ps-knight:first-child {
+  opacity: 1;
+}
+.ps-back {
+  opacity: 0;
+}
+.ps-card {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.ps-knight {
+  animation: psKnight steps(1, end) infinite both;
+}
+.ps-trail {
+  animation: psTrail steps(1, end) infinite both;
+}
+.ps-card {
+  animation: psFlip steps(1, end) infinite both;
+}
+.ps-back {
+  animation: psBack steps(1, end) infinite both;
+}
+.ps-face {
+  animation: psFace steps(1, end) infinite both;
+}
+.ps-imposter {
+  animation: psFidget steps(1, end) infinite both;
+}
+.px-game .px-anim {
+  animation-play-state: paused;
+}
+.px-game:hover .px-anim,
+.px-game:focus-visible .px-anim {
+  animation-play-state: running;
+}
+@media (hover: none) {
+  .px-game .px-anim {
+    animation-play-state: running;
+  }
+}
+
+/* Each square owns a tenth of the loop: the knight sits, crouches, and is gone. */
+@keyframes psKnight {
+  0% {
+    opacity: 1;
+    transform: none;
+  }
+  8% {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+  10%,
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+/* Lit for the next two hops after the knight leaves, then dark. */
+@keyframes psTrail {
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.55;
+  }
+  20% {
+    opacity: 0.25;
+  }
+  30%,
+  100% {
+    opacity: 0;
+  }
+}
+/* Face up from 10% to 72% of the loop, with a squashed frame for each flip. */
+@keyframes psFlip {
+  0% {
+    transform: none;
+  }
+  7% {
+    transform: scaleX(0.3);
+  }
+  10% {
+    transform: none;
+  }
+  69% {
+    transform: scaleX(0.3);
+  }
+  72%,
+  100% {
+    transform: none;
+  }
+}
+@keyframes psBack {
+  0% {
+    opacity: 1;
+  }
+  10% {
+    opacity: 0;
+  }
+  72%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes psFace {
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  72%,
+  100% {
+    opacity: 0;
+  }
+}
+/* While every card is up, the imposter shuffles from foot to foot. */
+@keyframes psFidget {
+  0% {
+    transform: none;
+  }
+  26% {
+    transform: translateX(-1px);
+  }
+  31% {
+    transform: translateX(1px);
+  }
+  36% {
+    transform: translateX(-1px);
+  }
+  41% {
+    transform: translateX(1px);
+  }
+  46%,
+  100% {
+    transform: none;
+  }
+}
+
+.px-game-body {
+  padding: 12px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+.px-game-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.px-game-name {
+  margin: 0;
+  font-family: var(--px-head);
+  font-weight: 600;
+  font-size: 19px;
+  line-height: 1.15;
+}
+.px-site a.px-game:hover .px-game-name {
+  color: var(--accent);
+}
+.px-game-kind {
+  flex: none;
+  padding: 2px 7px;
+  background: var(--pill-bg);
+  color: var(--pill-fg);
+  font-family: var(--px-dot);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+.px-game-one {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+.px-game-play {
+  margin-top: auto;
+  padding-top: 6px;
+}
+.px-site .px-key-mini {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 14px;
+}
+.px-site a.px-game:hover .px-key {
+  transform: translateY(-6px);
+}

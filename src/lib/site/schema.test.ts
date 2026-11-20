@@ -73,6 +73,11 @@ describe("site schema", () => {
     expect(parsed.games).not.toBe(defaultSite.games);
   });
 
+  it("gives a game without a picture no art", () => {
+    const { art: _art, ...game } = defaultSite.games[0];
+    expect(siteSchema.parse({ ...defaultSite, games: [game] }).games[0].art).toBe("none");
+  });
+
   it("trims text", () => {
     const input = structuredClone(contentOf(defaultSite));
     input.profile.name = "  Harshal Shinde  ";
