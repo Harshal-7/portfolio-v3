@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 
 /** Small building blocks for the admin page. */
 
@@ -54,6 +54,16 @@ const PATHS = {
   down: <path d="m6 9 6 6 6-6" />,
   trash: <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />,
   plus: <path d="M12 5v14M5 12h14" />,
+  grip: (
+    <g fill="currentColor" stroke="none">
+      <circle cx="9" cy="6" r="1.5" />
+      <circle cx="15" cy="6" r="1.5" />
+      <circle cx="9" cy="12" r="1.5" />
+      <circle cx="15" cy="12" r="1.5" />
+      <circle cx="9" cy="18" r="1.5" />
+      <circle cx="15" cy="18" r="1.5" />
+    </g>
+  ),
   external: <path d="M14 4h6v6M20 4l-9 9M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" />,
   sun: (
     <>
@@ -369,7 +379,8 @@ function IconButton(props: { label: string; icon: IconName; disabled?: boolean; 
 
 /**
  * A list shown as compact rows. Click a row to edit it in place; only one row
- * is open at a time.
+ * is open at a time. Drag a row by its handle (or focus the handle and use the
+ * arrow keys) to change the order.
  */
 export function ListEditor<T>(props: {
   items: T[];
@@ -383,12 +394,53 @@ export function ListEditor<T>(props: {
   render: (item: T, patch: (change: Partial<T>) => void) => ReactNode;
 }) {
   const [open, setOpen] = useState<number | null>(null);
+  const [dragging, setDragging] = useState<number | null>(null);
+  const rows = useRef<(HTMLDivElement | null)[]>([]);
+
   const move = (from: number, to: number) => {
+    if (from === to || to < 0 || to >= props.items.length) return;
     const next = [...props.items];
     const [item] = next.splice(from, 1);
     next.splice(to, 0, item);
     props.onChange(next);
-    setOpen(to);
+    // Keep the open row open wherever it ends up.
+    setOpen((o) => {
+      if (o === null) return null;
+      if (o === from) return to;
+      if (from < o && o <= to) return o - 1;
+      if (to <= o && o < from) return o + 1;
+      return o;
+    });
+  };
+
+  // The row under the pointer becomes the dragged row's new place, so the list
+  // reorders live as the pointer moves.
+  const onDragMove = (e: PointerEvent<HTMLButtonElement>) => {
+    if (dragging === null) return;
+    const y = e.clientY;
+    let to = dragging;
+    rows.current.forEach((el, j) => {
+      if (!el || j >= props.items.length) return;
+      const r = el.getBoundingClientRect();
+      if (j === 0 && y < r.top) to = 0;
+      else if (j === props.items.length - 1 && y > r.bottom) to = j;
+      else if (y >= r.top && y <= r.bottom) to = j;
+    });
+    if (to !== dragging) {
+      move(dragging, to);
+      setDragging(to);
+    }
+  };
+
+  const endDrag = () => setDragging(null);
+
+  const onHandleKey = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
+    const to = e.key === "ArrowUp" ? i - 1 : e.key === "ArrowDown" ? i + 1 : null;
+    if (to === null || to < 0 || to >= props.items.length) return;
+    e.preventDefault();
+    move(i, to);
+    // The handle that moved is now at the new index; keep focus on it.
+    requestAnimationFrame(() => rows.current[to]?.querySelector<HTMLButtonElement>("[data-grip]")?.focus());
   };
 
   return (
@@ -397,27 +449,63 @@ export function ListEditor<T>(props: {
         <div className="divide-y divide-line overflow-hidden rounded-xl border border-line">
           {props.items.map((item, i) => {
             const isOpen = open === i;
+            const isDragged = dragging === i;
             const title = props.title(item).trim();
             const subtitle = props.subtitle?.(item).trim();
             return (
-              <div key={i} className={isOpen ? "bg-bg" : undefined}>
-                <button
-                  type="button"
-                  aria-expanded={isOpen}
-                  onClick={() => setOpen(isOpen ? null : i)}
-                  className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition hover:bg-surface2"
-                >
-                  {props.dot && (
-                    <span className="size-3 shrink-0 rounded-full ring-1 ring-line" style={{ background: props.dot(item) }} />
-                  )}
-                  <span className="min-w-0 flex-1">
-                    <span className={`block truncate text-sm font-medium ${title ? "" : "text-muted"}`}>
-                      {title || `New ${props.noun}`}
+              <div
+                key={i}
+                ref={(el) => {
+                  rows.current[i] = el;
+                }}
+                className={isDragged ? "relative z-10 bg-surface2 shadow-lg" : isOpen ? "bg-bg" : undefined}
+              >
+                <div className="flex items-stretch">
+                  <button
+                    type="button"
+                    data-grip
+                    aria-label={`Drag to reorder ${title || `new ${props.noun}`} (or use the arrow keys)`}
+                    title="Drag to reorder"
+                    onPointerDown={(e) => {
+                      if (props.items.length < 2) return;
+                      e.preventDefault();
+                      e.currentTarget.setPointerCapture(e.pointerId);
+                      setDragging(i);
+                    }}
+                    onPointerMove={onDragMove}
+                    onPointerUp={endDrag}
+                    onPointerCancel={endDrag}
+                    onKeyDown={(e) => onHandleKey(e, i)}
+                    className={`grid w-9 shrink-0 touch-none place-items-center pl-1.5 text-muted/60 transition hover:text-fg ${
+                      isDragged ? "cursor-grabbing text-fg" : "cursor-grab"
+                    }`}
+                  >
+                    <Icon name="grip" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-expanded={isOpen}
+                    onClick={() => setOpen(isOpen ? null : i)}
+                    className="flex min-w-0 flex-1 items-center gap-3 py-3 pl-1 pr-3.5 text-left transition hover:bg-surface2"
+                  >
+                    {props.dot && (
+                      <span
+                        className="size-3 shrink-0 rounded-full ring-1 ring-line"
+                        style={{ background: props.dot(item) }}
+                      />
+                    )}
+                    <span className="min-w-0 flex-1">
+                      <span className={`block truncate text-sm font-medium ${title ? "" : "text-muted"}`}>
+                        {title || `New ${props.noun}`}
+                      </span>
+                      {subtitle && <span className="block truncate text-xs text-muted">{subtitle}</span>}
                     </span>
-                    {subtitle && <span className="block truncate text-xs text-muted">{subtitle}</span>}
-                  </span>
-                  <Icon name="chevron" className={`size-4 shrink-0 text-muted transition ${isOpen ? "rotate-90" : ""}`} />
-                </button>
+                    <Icon
+                      name="chevron"
+                      className={`size-4 shrink-0 text-muted transition ${isOpen ? "rotate-90" : ""}`}
+                    />
+                  </button>
+                </div>
                 {isOpen && (
                   <div className="flex flex-col gap-4 border-t border-line px-3.5 pb-4 pt-4">
                     {props.render(item, (change) =>
