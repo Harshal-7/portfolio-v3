@@ -410,7 +410,7 @@ export function AdminPanel(props: {
                 items={draft.games}
                 max={6}
                 noun="game"
-                blank={() => ({ name: "", what: "", meta: "", href: "https://games-eight-rho.vercel.app/", art: "none" as const })}
+                blank={() => ({ name: "", what: "", meta: "", href: "https://games.huhharshal.com/", art: "none" as const })}
                 title={(g) => g.name}
                 subtitle={(g) => g.what}
                 onChange={(items) => set("games", items)}
