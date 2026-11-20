@@ -1,4 +1,4 @@
-import type { SiteDoc } from "@/lib/site/schema";
+import type { ListItem, SiteDoc } from "@/lib/site/schema";
 import { findLink, newTab, visibleSections } from "@/lib/site/view";
 
 import { LineIcon, linkKind } from "../shared/link-icons";
@@ -10,6 +10,7 @@ import "./notebook.css";
 const LABELS: Labels = {
   projects: "Projects",
   earlier: "Earlier work",
+  games: "Games",
   about: "About",
   experience: "Experience",
   stack: "Stack",
@@ -25,6 +26,45 @@ function initials(name: string): string {
     .join("");
 }
 
+/** Earlier work and games: a name, a short line, and a link. */
+function LinkList({ items }: { items: ListItem[] }) {
+  return (
+    <ul className="nb-list">
+      {items.map((e, i) => {
+        const body = (
+          <>
+            <span className="nb-earlier-top">
+              <span className="nb-earlier-name">{e.name}</span>
+              {(e.meta || e.href) && (
+                <span className="nb-earlier-meta">
+                  {e.meta}
+                  {e.href && (
+                    <span aria-hidden="true" className="nb-arrow">
+                      ↗
+                    </span>
+                  )}
+                </span>
+              )}
+            </span>
+            {e.what && <span className="nb-earlier-what">{e.what}</span>}
+          </>
+        );
+        return (
+          <li key={`${i}-${e.name}`}>
+            {e.href ? (
+              <a href={e.href} {...newTab(e.href)} className="nb-earlier">
+                {body}
+              </a>
+            ) : (
+              <div className="nb-earlier">{body}</div>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 /**
  * Notebook: Quiet layout, Fraunces + Inter, Indigo, paper grain, pull-cord bulb,
  * project tiles. Mix B on the design canvas, with mix A's colours.
@@ -38,6 +78,7 @@ export function NotebookSite({ site }: { site: SiteDoc }) {
 
   const showProjects = show.has("projects") && site.projects.length > 0;
   const showEarlier = show.has("earlier") && site.earlier.length > 0;
+  const showGames = show.has("games") && site.games.length > 0;
   const showAbout = show.has("about") && profile.about.trim().length > 0;
   const showExperience = show.has("experience") && site.experience.length > 0;
 
@@ -120,41 +161,16 @@ export function NotebookSite({ site }: { site: SiteDoc }) {
               {showEarlier && (
                 <>
                   {showProjects && <h3 className="nb-sub nb-sub-earlier">{LABELS.earlier}</h3>}
-                  <ul className="nb-list">
-                    {site.earlier.map((e, i) => {
-                      const body = (
-                        <>
-                          <span className="nb-earlier-top">
-                            <span className="nb-earlier-name">{e.name}</span>
-                            {(e.meta || e.href) && (
-                              <span className="nb-earlier-meta">
-                                {e.meta}
-                                {e.href && (
-                                  <span aria-hidden="true" className="nb-arrow">
-                                    ↗
-                                  </span>
-                                )}
-                              </span>
-                            )}
-                          </span>
-                          {e.what && <span className="nb-earlier-what">{e.what}</span>}
-                        </>
-                      );
-                      return (
-                        <li key={`${i}-${e.name}`}>
-                          {e.href ? (
-                            <a href={e.href} {...newTab(e.href)} className="nb-earlier">
-                              {body}
-                            </a>
-                          ) : (
-                            <div className="nb-earlier">{body}</div>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  <LinkList items={site.earlier} />
                 </>
               )}
+            </section>
+          )}
+
+          {showGames && (
+            <section id="games" aria-label={LABELS.games}>
+              <h2 className="nb-h2">{LABELS.games}</h2>
+              <LinkList items={site.games} />
             </section>
           )}
 

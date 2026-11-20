@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 
-import type { SiteDoc } from "@/lib/site/schema";
+import type { ListItem, SiteDoc } from "@/lib/site/schema";
 import { newTab, splitLead, visibleSections } from "@/lib/site/view";
 
 import { linkKind, PixelIcon } from "../shared/link-icons";
@@ -13,6 +13,7 @@ import "./pixel.css";
 const LABELS: Labels = {
   projects: "Projects",
   earlier: "Side quests",
+  games: "Arcade",
   about: "About",
   experience: "Experience",
   stack: "Inventory",
@@ -84,6 +85,45 @@ function Key({ href, children, accent, className }: { href: string; children: Re
 
 const Tri = () => <span aria-hidden="true" className="px-tri" />;
 
+/** Earlier work and games: a name, a short line, and a link. */
+function LinkList({ items }: { items: ListItem[] }) {
+  return (
+    <ul className="px-list">
+      {items.map((e, i) => {
+        const body = (
+          <>
+            <span className="px-earlier-top">
+              <span className="px-earlier-name">{e.name}</span>
+              {(e.meta || e.href) && (
+                <span className="px-earlier-meta">
+                  {e.meta}
+                  {e.href && (
+                    <span aria-hidden="true" className="px-arrow">
+                      ↗
+                    </span>
+                  )}
+                </span>
+              )}
+            </span>
+            {e.what && <span className="px-earlier-what">{e.what}</span>}
+          </>
+        );
+        return (
+          <li key={`${i}-${e.name}`}>
+            {e.href ? (
+              <a href={e.href} {...newTab(e.href)} className="px-earlier">
+                {body}
+              </a>
+            ) : (
+              <div className="px-earlier">{body}</div>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 /**
  * Pixel: pixel layout, Pixelify Sans + Geist, Indigo, twinkling sparkles, pixel
  * bulb burst, pixel cards. Mix D on the design canvas.
@@ -96,6 +136,7 @@ export function PixelSite({ site }: { site: SiteDoc }) {
 
   const showProjects = show.has("projects") && site.projects.length > 0;
   const showEarlier = show.has("earlier") && site.earlier.length > 0;
+  const showGames = show.has("games") && site.games.length > 0;
   const showAbout = show.has("about") && profile.about.trim().length > 0;
   const showExperience = show.has("experience") && site.experience.length > 0;
 
@@ -216,41 +257,16 @@ export function PixelSite({ site }: { site: SiteDoc }) {
               {showEarlier && (
                 <>
                   {showProjects && <h3 className="px-sub">{LABELS.earlier}</h3>}
-                  <ul className="px-list">
-                    {site.earlier.map((e, i) => {
-                      const body = (
-                        <>
-                          <span className="px-earlier-top">
-                            <span className="px-earlier-name">{e.name}</span>
-                            {(e.meta || e.href) && (
-                              <span className="px-earlier-meta">
-                                {e.meta}
-                                {e.href && (
-                                  <span aria-hidden="true" className="px-arrow">
-                                    ↗
-                                  </span>
-                                )}
-                              </span>
-                            )}
-                          </span>
-                          {e.what && <span className="px-earlier-what">{e.what}</span>}
-                        </>
-                      );
-                      return (
-                        <li key={`${i}-${e.name}`}>
-                          {e.href ? (
-                            <a href={e.href} {...newTab(e.href)} className="px-earlier">
-                              {body}
-                            </a>
-                          ) : (
-                            <div className="px-earlier">{body}</div>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  <LinkList items={site.earlier} />
                 </>
               )}
+            </section>
+          )}
+
+          {showGames && (
+            <section aria-label={LABELS.games}>
+              <Heading id="games" label={LABELS.games} />
+              <LinkList items={site.games} />
             </section>
           )}
 

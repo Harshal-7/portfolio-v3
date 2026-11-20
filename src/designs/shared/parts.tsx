@@ -8,6 +8,7 @@ import { LoopVideo } from "./loop-video";
 export type Labels = {
   projects: string;
   earlier: string;
+  games: string;
   about: string;
   experience: string;
   stack: string;

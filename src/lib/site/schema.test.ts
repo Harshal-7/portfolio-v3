@@ -64,6 +64,15 @@ describe("site schema", () => {
     expect(contentSchema.safeParse({ ...contentOf(defaultSite), pixel: { ...pixel, boardSeconds: 1 } }).success).toBe(false);
   });
 
+  it("gives older saved content the games, switched on", () => {
+    const { games: _games, ...sections } = defaultSite.sections;
+    const { games: _list, ...older } = defaultSite;
+    const parsed = siteSchema.parse({ ...older, sections });
+    expect(parsed.sections.games).toBe(true);
+    expect(parsed.games).toEqual(defaultSite.games);
+    expect(parsed.games).not.toBe(defaultSite.games);
+  });
+
   it("trims text", () => {
     const input = structuredClone(contentOf(defaultSite));
     input.profile.name = "  Harshal Shinde  ";

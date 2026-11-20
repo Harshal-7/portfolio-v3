@@ -44,7 +44,7 @@ type TabId = "look" | "profile" | "work" | "experience" | "links";
 const TABS: { id: TabId; label: string; icon: IconName; keys: (keyof SiteContent)[] }[] = [
   { id: "look", label: "Look", icon: "look", keys: ["design", "defaultMode", "sections"] },
   { id: "profile", label: "Profile", icon: "profile", keys: ["profile", "pixel"] },
-  { id: "work", label: "Work", icon: "work", keys: ["projects", "earlier"] },
+  { id: "work", label: "Work", icon: "work", keys: ["projects", "earlier", "games"] },
   { id: "experience", label: "Experience", icon: "experience", keys: ["experience", "stack"] },
   { id: "links", label: "Links & resume", icon: "links", keys: ["links"] },
 ];
@@ -59,6 +59,7 @@ const MODE_OPTIONS: { value: DefaultMode; label: string; icon: IconName }[] = [
 const SECTIONS: Record<SectionKey, { label: string; note?: string }> = {
   projects: { label: "Projects" },
   earlier: { label: "Earlier work", note: "Side quests in Pixel" },
+  games: { label: "Games", note: "Arcade in Pixel" },
   about: { label: "About" },
   experience: { label: "Experience" },
   stack: { label: "Stack", note: "Inventory in Pixel" },
@@ -393,6 +394,27 @@ export function AdminPanel(props: {
                     </div>
                     <Text label="What it is" value={e.what} max={200} onChange={(v) => patch({ what: v })} />
                     <Text label="Link" placeholder="Optional" value={e.href} max={500} onChange={(v) => patch({ href: v })} />
+                  </>
+                )}
+              />
+            </Card>
+            <Card title="Games" aside={<Count n={draft.games.length} />}>
+              <ListEditor
+                items={draft.games}
+                max={6}
+                noun="game"
+                blank={() => ({ name: "", what: "", meta: "", href: "https://games-eight-rho.vercel.app/" })}
+                title={(g) => g.name}
+                subtitle={(g) => g.what}
+                onChange={(items) => set("games", items)}
+                render={(g, patch) => (
+                  <>
+                    <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+                      <Text label="Name" value={g.name} max={60} onChange={(v) => patch({ name: v })} />
+                      <Text label="Kind" placeholder="Puzzle" value={g.meta} max={40} onChange={(v) => patch({ meta: v })} />
+                    </div>
+                    <Text label="One line" value={g.what} max={200} onChange={(v) => patch({ what: v })} />
+                    <Text label="Link" value={g.href} max={500} onChange={(v) => patch({ href: v })} />
                   </>
                 )}
               />
